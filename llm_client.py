@@ -65,6 +65,10 @@ GROUNDING SOURCES — every claim must name its source
                     Show the formula and the numbers.
   "av_price_data"   From the PRICE HISTORY block (TIME_SERIES_MONTHLY_ADJUSTED).
                     Cite the specific date and price value.
+  "edgar_10k"       From the SEC EDGAR 10-K SIGNALS block.
+                    Cite the field name (going_concern_flag, material_weakness_flag,
+                    covenant_risk_flag) + the filing_date. For text excerpts, quote
+                    the relevant passage from the excerpt.
   "massive_news"    Confirmed by a Massive API article in the ARTICLE CORPUS.
                     Cite the headline title + date.
   "av_news"         Confirmed by an AV NEWS_SENTIMENT article in the ARTICLE CORPUS.
@@ -419,13 +423,16 @@ def _call_openai(prompt, model="gpt-4o", max_tokens=2000):
 # ─────────────────────────────────────────────────────────────────────────────
 # Prompt builder — passes FULL financials so LLM can investigate any field
 # ─────────────────────────────────────────────────────────────────────────────
-def _build_prompt(ticker, result, full_hist=None, api_raw=None, price_hist=None):
+def _build_prompt(ticker, result, full_hist=None, api_raw=None, price_hist=None,
+                  edgar_signals=None):
     """
     Build the investigation prompt.
-    full_hist:  list of dicts from data_loader.full_history() — last 5 years passed
-    api_raw:    dict from massive_api.event_scan() — full live signals with article corpus
-    price_hist: list of dicts from data_loader.price_history() — monthly price history
-                grounding_source = "av_price_data"; cite date + adj_close value
+    full_hist:     list of dicts from data_loader.full_history() — last 5 years passed
+    api_raw:       dict from massive_api.event_scan() — full article corpus + live signals
+    price_hist:    list of dicts from data_loader.price_history() — monthly price history
+                   grounding_source = "av_price_data"; cite date + adj_close value
+    edgar_signals: dict from edgar_api.edgar_10k_signals() — 10-K flags + excerpts
+                   grounding_source = "edgar_10k"; cite field + filing_date
     """
     def _f(v, d=3):
         """Safe float formatter — returns 'n/a' for None."""
@@ -532,12 +539,49 @@ REMEMBER: search RECENT FOCUSED HEADLINES before writing any business/strategy c
     else:
         api_block = "LIVE API SIGNALS: not available (Python screen only)"
 
+    # ---- SEC EDGAR 10-K signals block ----
+    if edgar_signals and not edgar_signals.get("error"):
+        gc  = edgar_signals.get("going_concern_flag",     False)
+        mw  = edgar_signals.get("material_weakness_flag", False)
+        cov = edgar_signals.get("covenant_risk_flag",     False)
+        trunc = edgar_signals.get("text_truncated",       False)
+        edgar_block = (
+            f"SEC EDGAR 10-K SIGNALS (grounding_source='edgar_10k'):\n"
+            f"  filing_date:           {edgar_signals.get('filing_date')}\n"
+            f"  fiscal_year_end:       {edgar_signals.get('fiscal_year_end')}\n"
+            f"  going_concern_flag:    {gc}\n"
+            f"  material_weakness_flag:{mw}\n"
+            f"  covenant_risk_flag:    {cov}\n"
+            f"  text_truncated:        {trunc}"
+            f"  {'(document > 2MB — auditor report in tail may not be present)' if trunc else ''}\n"
+            f"  edgar_url:             {edgar_signals.get('edgar_url')}\n"
+        )
+        for ex in (edgar_signals.get("going_concern_excerpts") or []):
+            edgar_block += (f"\n  [GOING-CONCERN kw='{ex['keyword']}']"
+                            f"\n    {ex['excerpt'][:500]}\n")
+        for ex in (edgar_signals.get("material_weakness_excerpts") or []):
+            edgar_block += (f"\n  [MATERIAL-WEAKNESS kw='{ex['keyword']}']"
+                            f"\n    {ex['excerpt'][:500]}\n")
+        for ex in (edgar_signals.get("covenant_excerpts") or []):
+            edgar_block += (f"\n  [COVENANT kw='{ex['keyword']}']"
+                            f"\n    {ex['excerpt'][:500]}\n")
+        mda = edgar_signals.get("mda_excerpt")
+        if mda:
+            edgar_block += f"\n  [MD&A — management's own narrative]:\n  {mda[:2000]}\n"
+    elif edgar_signals and edgar_signals.get("error"):
+        edgar_block = f"SEC EDGAR 10-K: not available — {edgar_signals['error']}"
+    else:
+        edgar_block = "SEC EDGAR 10-K: not fetched (grounding_source='edgar_10k' unavailable)"
+
     instruction = """
 Investigate every notable signal. Read the full article corpus before any business/strategy claim.
 Use av_price_data for price moves if the PRICE HISTORY block is present.
+Use edgar_10k grounding source for going_concern_flag, material_weakness_flag, covenant_risk_flag,
+or text excerpts from the 10-K blocks above.
 Return ONLY the JSON verdict object. No prose before or after it."""
 
-    return f"{screen_block}\n\n{fin_block}\n\n{price_block}\n\n{api_block}\n{instruction}"
+    return (f"{screen_block}\n\n{fin_block}\n\n{price_block}\n\n"
+            f"{edgar_block}\n\n{api_block}\n{instruction}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -569,13 +613,17 @@ class LLMClient:
             self.provider = "anthropic" if _anthropic_key() else \
                             "openai"    if _openai_key()    else "none"
 
-    def explain(self, ticker, result, full_hist=None, api_raw=None, price_hist=None):
+    def explain(self, ticker, result, full_hist=None, api_raw=None, price_hist=None,
+                edgar_signals=None):
         """
         Investigate and return (verdict_dict_or_None, error_str_or_None).
-        full_hist:  from data_loader.full_history()    — 5-year financials for grounding
-        api_raw:    from massive_api.event_scan()      — full article corpus + live signals
-        price_hist: from data_loader.price_history()   — monthly price history
-                    (grounding_source="av_price_data"; grounds stock price move claims)
+        full_hist:     from data_loader.full_history()       — 5-year financials for grounding
+        api_raw:       from massive_api.event_scan()         — full article corpus + live signals
+        price_hist:    from data_loader.price_history()      — monthly price history
+                       (grounding_source="av_price_data"; grounds stock price move claims)
+        edgar_signals: from edgar_api.edgar_10k_signals()   — 10-K flags + excerpts
+                       (grounding_source="edgar_10k"; grounds going_concern, mat_weakness,
+                       covenant_risk, and MD&A narrative)
 
         On success: (dict with bucket/grounded_claims/training_flags/unresolved/narrative, None)
         On failure: (None, error_str)
@@ -583,10 +631,10 @@ class LLMClient:
         if self.provider == "none":
             return None, "no LLM key (set ANTHROPIC_API_KEY or OPENAI_API_KEY)"
         prompt = _build_prompt(ticker, result, full_hist=full_hist, api_raw=api_raw,
-                               price_hist=price_hist)
+                               price_hist=price_hist, edgar_signals=edgar_signals)
         if self.provider == "anthropic":
             return _call_anthropic(prompt, model=self.model or "claude-3-5-sonnet-20241022",
-                                   max_tokens=3000)   # bumped for larger article corpus
+                                   max_tokens=3000)
         if self.provider == "openai":
             return _call_openai(prompt, model=self.model or "gpt-4o", max_tokens=3000)
         return None, f"unknown provider: {self.provider}"
@@ -608,28 +656,34 @@ if __name__ == "__main__":
     from calibrate import process_one
     from data_loader import load_fundamentals, full_history, price_history
     from massive_api import event_scan
+    from edgar_api   import edgar_10k_signals
 
     ticker = sys.argv[1] if len(sys.argv) > 1 else "AAPL"
     print(f"Running full investigation pipeline for {ticker}...\n")
 
-    result     = process_one(ticker, write=False)
-    fund       = load_fundamentals(ticker)
-    hist       = full_history(fund) if fund else None
-    api_raw    = event_scan(ticker)
-    price_hist = price_history(ticker, months=24)
+    result        = process_one(ticker, write=False)
+    fund          = load_fundamentals(ticker)
+    hist          = full_history(fund) if fund else None
+    api_raw       = event_scan(ticker)
+    price_hist    = price_history(ticker, months=24)
+    edgar_signals = edgar_10k_signals(ticker)
 
     n_focused = api_raw.get("n_focused_articles", len(api_raw.get("all_focused_articles", [])))
     print(f"  Python screen:   {result['bucket']}")
     print(f"  Python effective:{result['effective_bucket']}  verdict={result['verdict']}")
-    print(f"  {len(hist) if hist else 0} years of financials · {api_raw['n_news']} news articles "
-          f"({n_focused} focused) · {len(price_hist)} months of price history\n")
+    print(f"  {len(hist) if hist else 0} years financials · "
+          f"{api_raw['n_news']} articles ({n_focused} focused) · "
+          f"{len(price_hist)} mo price history · "
+          f"10-K: GC={edgar_signals.get('going_concern_flag')} "
+          f"MW={edgar_signals.get('material_weakness_flag')} "
+          f"COV={edgar_signals.get('covenant_risk_flag')}\n")
 
     client = LLMClient()
     print(f"  LLM provider: {client}")
     if client.active:
         print("  Calling LLM for grounded investigation...\n")
         verdict, err = client.explain(ticker, result, full_hist=hist, api_raw=api_raw,
-                                      price_hist=price_hist)
+                                      price_hist=price_hist, edgar_signals=edgar_signals)
         if err and verdict is None:
             print(f"  ERROR: {err}")
         elif verdict:

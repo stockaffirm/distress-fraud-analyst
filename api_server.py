@@ -166,17 +166,20 @@ def analyze_ticker(ticker, explain=False, model=None):
     }
 
     if explain and _llm_client and _llm_client.active:
-        # Fetch full financials + price history + live API signals for LLM investigation
-        full_hist  = None
-        api_raw    = None
-        price_hist = None
+        # Fetch all grounding data for LLM investigation
+        full_hist     = None
+        api_raw       = None
+        price_hist    = None
+        edgar_signals = None
         try:
             from data_loader import load_fundamentals, full_history, price_history
             from massive_api import event_scan
-            fund       = load_fundamentals(ticker)
-            full_hist  = full_history(fund) if fund else None
-            price_hist = price_history(ticker, months=24)   # 2yr monthly price for grounding
-            api_raw    = event_scan(ticker)
+            from edgar_api  import edgar_10k_signals
+            fund          = load_fundamentals(ticker)
+            full_hist     = full_history(fund) if fund else None
+            price_hist    = price_history(ticker, months=24)     # 2yr monthly price
+            api_raw       = event_scan(ticker)                    # news + short interest
+            edgar_signals = edgar_10k_signals(ticker)            # 10-K: going-concern, MW, covenants
         except Exception:
             pass   # LLM still runs with whatever it has
 
@@ -185,7 +188,8 @@ def analyze_ticker(ticker, explain=False, model=None):
 
         # Layer 3 — LLM investigation: returns structured verdict dict
         verdict, err = client.explain(
-            ticker, result, full_hist=full_hist, api_raw=api_raw, price_hist=price_hist
+            ticker, result, full_hist=full_hist, api_raw=api_raw,
+            price_hist=price_hist, edgar_signals=edgar_signals
         )
 
         if verdict and isinstance(verdict, dict) and verdict.get("bucket"):
