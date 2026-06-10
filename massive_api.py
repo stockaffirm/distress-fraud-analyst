@@ -352,22 +352,30 @@ def event_scan(ticker, massive_limit=200, av_limit=200):
     avg_sentiment = (sum(a["sentiment"] for a in av_focused) / len(av_focused)
                      if av_focused else None)
 
-    # 5b. Recent focused headlines — all focused articles sorted newest-first, up to 30.
-    #     Passed to the LLM so it can GROUND qualitative claims (contracts, partnerships,
-    #     strategy) from actual headlines rather than training knowledge.
-    #     Rule: if a business claim (e.g. "signed AT&T deal") is confirmed by a headline
-    #     here → [GROUNDED: news headline, source=..., date=...]. If no headline exists →
-    #     [TRAINING-FLAG: grounding_source=training_only, how_to_ground: search EDGAR/news].
+    # 5b. Complete focused article corpus — ALL focused articles sorted newest-first.
+    #     Passed to the LLM so it reads the FULL news picture and discovers what is there
+    #     organically, rather than searching for pre-specified keywords.
+    #     The LLM grounds claims by citing specific articles from this corpus — if a claim
+    #     has no matching article, it must be marked training_only.
+    #
+    #     Includes title + description (not just titles) so the LLM can read actual content.
+    #     No artificial cap: for high-coverage tickers (ORCL, AAPL) this may be 100+ articles.
     focused_all = sorted(
         [a for a in arts if _is_focused(a, T)],
         key=lambda x: x.get("date", ""), reverse=True
-    )[:30]
-    recent_focused_headlines = [
-        {"date": a.get("date", ""), "title": a.get("title", "")[:150],
-         "source": a.get("source", "massive"),
-         "sentiment": a.get("sentiment")}
+    )  # NO cap — pass the complete corpus
+    all_focused_articles = [
+        {
+            "date":      a.get("date", ""),
+            "title":     a.get("title", ""),        # full title, not truncated
+            "desc":      (a.get("desc") or ""),     # body text (up to 300 chars) for richer context
+            "source":    a.get("source", "massive"),
+            "sentiment": a.get("sentiment"),
+        }
         for a in focused_all
     ]
+    # backward compat alias — callers that reference recent_focused_headlines get the full corpus
+    recent_focused_headlines = all_focused_articles
 
     # 6. Short interest
     si  = short_interest(ticker)
@@ -378,6 +386,7 @@ def event_scan(ticker, massive_limit=200, av_limit=200):
         "n_news":             len(arts),        # total deduped articles
         "n_news_massive":     n_massive,        # breakdown for transparency
         "n_news_av":          n_av,
+        "n_focused_articles": len(all_focused_articles),  # how many are focused on this ticker
         "bankruptcy_events":  bk,
         "fraud_events":       fr,
         "capital_raises":     raises,
@@ -389,8 +398,11 @@ def event_scan(ticker, massive_limit=200, av_limit=200):
         "api_fraud":          bool(fr),
         "api_recent_raise":   bool(raises),
         "api_high_short":     bool(dtc is not None and dtc >= 10),
-        # For LLM grounding of qualitative claims (contracts, strategy, partnerships)
-        "recent_focused_headlines": recent_focused_headlines,
+        # Complete focused article corpus (title + description) — no artificial cap.
+        # LLM reads ALL of these to discover what's in the news, not just search for
+        # expected terms. Grounding: cite title+date → massive_news or av_news.
+        "all_focused_articles":     all_focused_articles,
+        "recent_focused_headlines": recent_focused_headlines,   # alias (same data)
     }
 
 

@@ -63,9 +63,11 @@ GROUNDING SOURCES — every claim must name its source
                     This is HARD data — cite field name + year.
   "calculated"      Computed from av_financial (e.g. DSRI = recv/rev ratio; runway = cash/burn).
                     Show the formula and the numbers.
-  "massive_news"    Confirmed by a Massive API headline in the provided recent_focused_headlines.
+  "av_price_data"   From the PRICE HISTORY block (TIME_SERIES_MONTHLY_ADJUSTED).
+                    Cite the specific date and price value.
+  "massive_news"    Confirmed by a Massive API article in the ARTICLE CORPUS.
                     Cite the headline title + date.
-  "av_news"         Confirmed by an AV NEWS_SENTIMENT headline in recent_focused_headlines.
+  "av_news"         Confirmed by an AV NEWS_SENTIMENT article in the ARTICLE CORPUS.
                     Cite the headline title + date.
   "training_only"   Your training knowledge — NOT confirmed by any provided data or news.
                     This is the ONLY valid source for a training_flag, and it means you
@@ -78,33 +80,42 @@ Step 1 — HYPOTHESIZE: state what training tells you this pattern could mean
            (list 2–3 candidate explanations, most likely first)
 Step 2 — LOOK UP: name the specific fields in the data you need to check.
            For FINANCIAL claims: look in the FULL FINANCIAL DATA block.
+           For PRICE claims: look in the PRICE HISTORY block (av_price_data).
            For BUSINESS claims (contracts, partnerships, strategy, market position):
-             MANDATORY: search the RECENT FOCUSED HEADLINES block FIRST.
-             If a matching headline exists → grounding_source = "massive_news" or "av_news".
-             If NO matching headline → grounding_source = "training_only" → training_flag.
+             Read the ARTICLE CORPUS first — discover what is actually there.
+             If a matching article exists → grounding_source = "massive_news" or "av_news".
+             If NO matching article → grounding_source = "training_only" → training_flag.
 Step 3 — EVALUATE: does the data confirm, refute, or not speak to the hypothesis?
            If refuted → try the next candidate. If nothing fits → say so explicitly.
 Step 4 — LABEL every claim with its grounding_source.
 
-MANDATORY RULE — news search before any business claim:
-  Before writing ANY claim about: contracts · partnerships · customers · AI strategy ·
-  market position · competitor context · regulatory status · management actions —
-  search the RECENT FOCUSED HEADLINES provided. If you find a matching headline:
-    → grounding_source = "massive_news" or "av_news", cite title + date.
-  If you find NO matching headline:
-    → grounding_source = "training_only", put it in training_flags with
-      how_to_ground: "search SEC EDGAR 8-K / 10-K §Revenue Recognition / news for [specific query]"
-  This rule catches the most common LLM failure: claiming "Company X signed a contract
-  with Y for Z" when only training knowledge supports it, not any provided data.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEWS ANALYSIS — read the complete article corpus, discover freely
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+You have been provided with the COMPLETE focused article corpus for this ticker
+(ALL focused articles, not a filtered sample). Read them all before forming any
+view on the business, strategy, contracts, or events.
+
+Do NOT search for expected terms — discover what is actually there organically.
+The most important information may be something you didn't know to look for:
+a new partnership, a regulatory action, a product launch, a management change,
+or a contract signed after your training cutoff.
+
+After reading the corpus:
+  - If a claim is supported by a specific article → grounding_source = "massive_news"
+    or "av_news"; cite the headline title and date exactly.
+  - If a claim is NOT supported by any article you read → grounding_source =
+    "training_only"; put it in training_flags with how_to_ground pointing to a
+    specific search (SEC EDGAR 8-K, 10-K §Revenue Recognition, etc.)
 
 RULES (never break these):
-  ✗ Never assert a business/strategy fact from training without first searching news headlines
+  ✗ Never assert a business/strategy fact from training without checking the article corpus
   ✗ Never use training knowledge as the sole source for a factual claim
   ✓ Revenue, CFO, assets, debt, equity — these come from av_financial (hard data)
-  ✓ Stock price moves ("went from $80 to $345") are NOT in our data → training_only
+  ✓ Stock price moves: use av_price_data if PRICE HISTORY is provided; else training_only
   ✓ If data refutes your first hypothesis, say "hypothesis (a) REFUTED — checking (b)"
   ✓ Multi-year trends are stronger evidence than single-year readings
-  ✓ "I cannot find grounding for this in the provided data or headlines" is correct
+  ✓ "I cannot find grounding for this in the provided data or articles" is correct
   ✓ You MAY disagree with the Python screen bucket — say why in the narrative
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -257,7 +268,9 @@ SELF-CHECK before returning:
   2. Every training_flag has grounding_source = "training_only" AND a specific how_to_ground
   3. No business/strategy claim is in grounded_claims with grounding_source = "training_only"
      (training knowledge about strategy → training_flags, never grounded_claims)
-  4. Stock price moves are training_only — put them in training_flags if relevant
+  4. Stock price moves: if PRICE HISTORY is provided → av_price_data (grounded).
+     If no price history block → training_only (put in training_flags).
+     Never state a specific price move without citing a specific date from price data.
 
 Return ONLY the JSON. No other text before or after it.
 """
@@ -406,11 +419,13 @@ def _call_openai(prompt, model="gpt-4o", max_tokens=2000):
 # ─────────────────────────────────────────────────────────────────────────────
 # Prompt builder — passes FULL financials so LLM can investigate any field
 # ─────────────────────────────────────────────────────────────────────────────
-def _build_prompt(ticker, result, full_hist=None, api_raw=None):
+def _build_prompt(ticker, result, full_hist=None, api_raw=None, price_hist=None):
     """
     Build the investigation prompt.
-    full_hist: list of dicts from data_loader.full_history() — last 5 years passed
-    api_raw:   dict from massive_api.event_scan() — full live signals with headlines
+    full_hist:  list of dicts from data_loader.full_history() — last 5 years passed
+    api_raw:    dict from massive_api.event_scan() — full live signals with article corpus
+    price_hist: list of dicts from data_loader.price_history() — monthly price history
+                grounding_source = "av_price_data"; cite date + adj_close value
     """
     def _f(v, d=3):
         """Safe float formatter — returns 'n/a' for None."""
@@ -457,13 +472,32 @@ REMEMBER: search RECENT FOCUSED HEADLINES before writing any business/strategy c
     else:
         fin_block = "FULL FINANCIAL DATA: not available — base verdict on Python screen + live signals only"
 
+    # ---- Price history block (monthly, 2 years) ----
+    if price_hist:
+        price_block = (
+            f"PRICE HISTORY (monthly adj_close, newest first — grounding_source='av_price_data'):\n"
+            f"[{len(price_hist)} months — cite date + adj_close when making any price-move claim]\n"
+        )
+        for p in price_hist:
+            ac = p.get("adj_close")
+            price_block += f"  {p.get('date','?')}  adj_close=${ac:.2f}\n" if ac is not None else \
+                           f"  {p.get('date','?')}  adj_close=n/a\n"
+    else:
+        price_block = (
+            "PRICE HISTORY: not available — stock price move claims are training_only; "
+            "put them in training_flags, not grounded_claims."
+        )
+
     # ---- Live API signals block ----
     if api_raw:
-        headlines = api_raw.get("recent_focused_headlines", [])
+        # Use all_focused_articles if available (new); fall back to recent_focused_headlines (compat)
+        articles = api_raw.get("all_focused_articles") or api_raw.get("recent_focused_headlines", [])
+        n_focused = api_raw.get("n_focused_articles", len(articles))
         api_block = "LIVE API SIGNALS:\n" + json.dumps({
             "n_news":            api_raw.get("n_news", 0),
             "n_news_massive":    api_raw.get("n_news_massive", 0),
             "n_news_av":         api_raw.get("n_news_av", 0),
+            "n_focused_articles":n_focused,
             "av_avg_sentiment":  api_raw.get("av_avg_sentiment"),
             "short_dtc":         api_raw.get("short_days_to_cover"),
             "api_distress":      api_raw.get("api_distress"),
@@ -475,23 +509,35 @@ REMEMBER: search RECENT FOCUSED HEADLINES before writing any business/strategy c
             "capital_raises":    api_raw.get("capital_raises", [])[:3],
             "lawfirm_spam_count":api_raw.get("lawfirm_spam", 0),
         }, indent=2)
-        if headlines:
-            # Pass ALL recent focused headlines — LLM MUST search these before any business claim
+        if articles:
+            # Pass the COMPLETE focused article corpus — LLM reads all, discovers freely
             api_block += (
-                f"\n\nRECENT FOCUSED HEADLINES (search these before writing any business/strategy/contract claim):\n"
-                f"[{len(headlines)} headlines — if your claim matches a headline below, "
-                f"cite it as grounding_source=massive_news or av_news with title+date]\n"
+                f"\n\nARTICLE CORPUS (complete — {len(articles)} focused articles):\n"
+                f"Read ALL articles before forming any business/strategy/contract view.\n"
+                f"Do NOT search for expected terms — discover what is there organically.\n"
+                f"If a claim is supported by an article → cite title+date as grounding_source.\n"
+                f"If no article supports a claim → training_only → training_flags.\n\n"
             )
-            for h in headlines:
-                api_block += f"  [{h.get('source','?')}|{h.get('date','')}] {h.get('title','')}\n"
+            for a in articles:
+                src  = a.get("source", "?")
+                date = a.get("date", "")
+                title= a.get("title", "")
+                desc = (a.get("desc") or "").strip()
+                sent = a.get("sentiment")
+                sent_str = f"  [sentiment={sent:.2f}]" if sent is not None else ""
+                api_block += f"  [{src}|{date}]{sent_str} {title}\n"
+                if desc:
+                    # Indent description under title for readability
+                    api_block += f"    {desc}\n"
     else:
         api_block = "LIVE API SIGNALS: not available (Python screen only)"
 
     instruction = """
-Investigate every notable signal. Search headlines for business claims.
+Investigate every notable signal. Read the full article corpus before any business/strategy claim.
+Use av_price_data for price moves if the PRICE HISTORY block is present.
 Return ONLY the JSON verdict object. No prose before or after it."""
 
-    return f"{screen_block}\n\n{fin_block}\n\n{api_block}\n{instruction}"
+    return f"{screen_block}\n\n{fin_block}\n\n{price_block}\n\n{api_block}\n{instruction}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -523,22 +569,26 @@ class LLMClient:
             self.provider = "anthropic" if _anthropic_key() else \
                             "openai"    if _openai_key()    else "none"
 
-    def explain(self, ticker, result, full_hist=None, api_raw=None):
+    def explain(self, ticker, result, full_hist=None, api_raw=None, price_hist=None):
         """
         Investigate and return (verdict_dict_or_None, error_str_or_None).
-        full_hist: from data_loader.full_history() — passed so LLM can investigate
-        api_raw:   from massive_api.event_scan()  — full live signals with headlines
+        full_hist:  from data_loader.full_history()    — 5-year financials for grounding
+        api_raw:    from massive_api.event_scan()      — full article corpus + live signals
+        price_hist: from data_loader.price_history()   — monthly price history
+                    (grounding_source="av_price_data"; grounds stock price move claims)
 
         On success: (dict with bucket/grounded_claims/training_flags/unresolved/narrative, None)
         On failure: (None, error_str)
         """
         if self.provider == "none":
             return None, "no LLM key (set ANTHROPIC_API_KEY or OPENAI_API_KEY)"
-        prompt = _build_prompt(ticker, result, full_hist=full_hist, api_raw=api_raw)
+        prompt = _build_prompt(ticker, result, full_hist=full_hist, api_raw=api_raw,
+                               price_hist=price_hist)
         if self.provider == "anthropic":
-            return _call_anthropic(prompt, model=self.model or "claude-3-5-sonnet-20241022")
+            return _call_anthropic(prompt, model=self.model or "claude-3-5-sonnet-20241022",
+                                   max_tokens=3000)   # bumped for larger article corpus
         if self.provider == "openai":
-            return _call_openai(prompt, model=self.model or "gpt-4o")
+            return _call_openai(prompt, model=self.model or "gpt-4o", max_tokens=3000)
         return None, f"unknown provider: {self.provider}"
 
     @property
@@ -556,26 +606,30 @@ if __name__ == "__main__":
     import sys
     sys.path.insert(0, str(HERE))
     from calibrate import process_one
-    from data_loader import load_fundamentals, full_history
+    from data_loader import load_fundamentals, full_history, price_history
     from massive_api import event_scan
 
     ticker = sys.argv[1] if len(sys.argv) > 1 else "AAPL"
     print(f"Running full investigation pipeline for {ticker}...\n")
 
-    result  = process_one(ticker, write=False)
-    fund    = load_fundamentals(ticker)
-    hist    = full_history(fund) if fund else None
-    api_raw = event_scan(ticker)
+    result     = process_one(ticker, write=False)
+    fund       = load_fundamentals(ticker)
+    hist       = full_history(fund) if fund else None
+    api_raw    = event_scan(ticker)
+    price_hist = price_history(ticker, months=24)
 
+    n_focused = api_raw.get("n_focused_articles", len(api_raw.get("all_focused_articles", [])))
     print(f"  Python screen:   {result['bucket']}")
     print(f"  Python effective:{result['effective_bucket']}  verdict={result['verdict']}")
-    print(f"  {len(hist) if hist else 0} years of financials · {api_raw['n_news']} news articles\n")
+    print(f"  {len(hist) if hist else 0} years of financials · {api_raw['n_news']} news articles "
+          f"({n_focused} focused) · {len(price_hist)} months of price history\n")
 
     client = LLMClient()
     print(f"  LLM provider: {client}")
     if client.active:
         print("  Calling LLM for grounded investigation...\n")
-        verdict, err = client.explain(ticker, result, full_hist=hist, api_raw=api_raw)
+        verdict, err = client.explain(ticker, result, full_hist=hist, api_raw=api_raw,
+                                      price_hist=price_hist)
         if err and verdict is None:
             print(f"  ERROR: {err}")
         elif verdict:

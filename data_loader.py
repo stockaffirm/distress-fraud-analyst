@@ -10,8 +10,12 @@ Self-sustaining: works anywhere with an AV_API_KEY. No local ZIP files or
 StockAffirm pipeline required. 75 subagents can run in parallel — each fetches
 its own ticker independently; SQLite handles concurrent cache reads/writes.
 
-AV endpoints used per ticker (4 calls on first fetch, 0 on cache hit):
+AV endpoints used per ticker (fundamentals: 4 calls on first fetch, 0 on cache hit):
   INCOME_STATEMENT · BALANCE_SHEET · CASH_FLOW · OVERVIEW
+
+AV endpoints for price history (1 call on first fetch, 0 on cache hit):
+  TIME_SERIES_MONTHLY_ADJUSTED  → price_history(ticker, months=24)
+  grounding_source = "av_price_data" in LLM verdicts
 
 Key lookup order:
   1. ALPHAVANTAGE_API_KEY env var
@@ -97,8 +101,53 @@ def _cache_init():
         overview_json TEXT,
         fetched_utc  INTEGER
     )""")
+    # Separate table for monthly price history (TIME_SERIES_MONTHLY_ADJUSTED).
+    # Kept separate from fundamentals so price refreshes independently.
+    con.execute("""CREATE TABLE IF NOT EXISTS av_price_cache (
+        ticker      TEXT PRIMARY KEY,
+        price_json  TEXT,
+        fetched_utc INTEGER
+    )""")
     con.commit()
     return con
+
+
+# ---- Price cache helpers ---------------------------------------------------
+def _price_cache_get(ticker):
+    """Return cached monthly price list if fresh (< TTL), else None."""
+    try:
+        con = sqlite3.connect(str(CACHE_DB))
+        con.execute("""CREATE TABLE IF NOT EXISTS av_price_cache (
+            ticker TEXT PRIMARY KEY, price_json TEXT, fetched_utc INTEGER
+        )""")
+        row = con.execute(
+            "SELECT price_json, fetched_utc FROM av_price_cache WHERE ticker=?",
+            (ticker.upper(),)
+        ).fetchone()
+        if not row:
+            return None
+        age_hours = (time.time() - (row[1] or 0)) / 3600
+        if age_hours > CACHE_TTL_HOURS:
+            return None
+        return json.loads(row[0]) if row[0] else None
+    except Exception:
+        return None
+
+
+def _price_cache_set(ticker, price_data):
+    try:
+        con = sqlite3.connect(str(CACHE_DB))
+        con.execute("""CREATE TABLE IF NOT EXISTS av_price_cache (
+            ticker TEXT PRIMARY KEY, price_json TEXT, fetched_utc INTEGER
+        )""")
+        con.execute(
+            "INSERT OR REPLACE INTO av_price_cache (ticker, price_json, fetched_utc) "
+            "VALUES (?,?,?)",
+            (ticker.upper(), json.dumps(price_data), int(time.time()))
+        )
+        con.commit()
+    except Exception:
+        pass
 
 
 def _cache_get(ticker):
@@ -310,6 +359,50 @@ def load_context(ticker):
         "52w_high":         _n(ov.get("52WeekHigh")),
         "52w_low":          _n(ov.get("52WeekLow")),
     }
+
+
+# ---- Price history ----------------------------------------------------------
+def price_history(ticker, months=24):
+    """
+    Return monthly price history from Alpha Vantage TIME_SERIES_MONTHLY_ADJUSTED.
+
+    Returns list of {date, close, adj_close, volume} sorted newest-first,
+    limited to `months` entries (default 24 = 2 years).
+
+    grounding_source for LLM claims: "av_price_data"
+    Cite as: field="adj_close", value="$NNN", date="YYYY-MM-DD"
+
+    Returns empty list if no AV key or data unavailable.
+    """
+    t = ticker.upper()
+
+    # Cache hit
+    cached = _price_cache_get(t)
+    if cached is not None:
+        return cached[:months]
+
+    # Fetch from AV
+    key = _av_key()
+    if not key:
+        return []
+    url = (f"{AV_BASE}?function=TIME_SERIES_MONTHLY_ADJUSTED"
+           f"&symbol={t}&apikey={key}")
+    data = _fib_fetch(url)
+    if not data:
+        return []
+
+    ts = data.get("Monthly Adjusted Time Series") or {}
+    rows = []
+    for date_str, vals in sorted(ts.items(), reverse=True):
+        rows.append({
+            "date":      date_str,
+            "close":     _n(vals.get("4. close")),
+            "adj_close": _n(vals.get("5. adjusted close")),
+            "volume":    _n(vals.get("6. volume")),
+        })
+
+    _price_cache_set(t, rows)
+    return rows[:months]
 
 
 # ---- _recs compatibility shim ----------------------------------------------
