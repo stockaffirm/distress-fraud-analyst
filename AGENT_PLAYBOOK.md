@@ -82,12 +82,21 @@ RISK:    <one line — what would hurt you / why it's safe>
 4. **LABEL** — cite the data point or flag as ungrounded. Never assert without a label.
 
 **Bucket meaning (the deliverable):**
+
+*Grounded buckets* — LLM confirmed these from data:
 - **AVOID(insolvency)** — over-levered / loss-eroded operating business genuinely failing.
 - **AVOID(cash_burn)** — pre-profit, burning cash, dependent on raising more capital.
 - **AVOID(fraud)** — earnings can't convert to cash + corroboration ("investigate", confirmed by news/API).
 - **DISTRESSED-RECOVERABLE** — badly stressed but solvent, cash-generating, and turning.
 - **WATCH** — stress signals (or a demoted forensic earnings-quality flag), not terminal.
 - **CLEAR** — no material distress or manipulation signal.
+
+*Training-flag buckets* — LLM suspects risk but cannot fully ground it from available data:
+- **TRAINING-FLAG(distress)** — suspected insolvency/cash-burn risk; data insufficient to confirm.
+- **TRAINING-FLAG(fraud)** — suspected earnings manipulation; patterns suggestive, not conclusive.
+- **TRAINING-FLAG(watch)** — concerning pattern from training; warrants investigation.
+
+Use TRAINING-FLAG when: Python flagged something the LLM can't confirm OR refute from data; training suggests risk the financials don't surface; conflicting evidence can't be resolved.
 
 The **`effective_bucket`** is the answer — the screen bucket reconciled with the direct-API overlay
 (`calibrate.py` computes it): CORROBORATED→AVOID; `OVERFLAG_recent_raise`/`review`→downgrade a
@@ -230,8 +239,14 @@ Key auto-loaded from `stockaffirm/.env` (`API_KEY`). `python3 massive_api.py TIC
 - **Every factual claim must be grounded or flagged** (see §1 Grounding Protocol).
   Training knowledge is valid for recognizing what to look for, not for asserting facts.
   If you cannot ground a claim, say "I cannot confirm this from available data" — that is correct.
-- **The LLM investigates; Python decides the bucket.** The bucket (AVOID/CLEAR/etc.) is set by
-  deterministic Python and cannot be overridden by LLM reasoning. The LLM explains the why.
+- **The LLM is the primary analyst; the Python screen is secondary evidence.**
+  - When an LLM investigation runs (explain=true / Mode 2 subagent), the LLM's bucket is the
+    `effective_bucket`. Python flags are `screen_bucket` / `screen_flags` — the starting hypothesis.
+  - The LLM MAY disagree with the Python screen; it must explain why in the narrative.
+  - Use TRAINING-FLAG buckets when you cannot ground a risk from available data — that is more
+    honest than forcing a AVOID or CLEAR you cannot back with data.
+  - When no LLM runs (explain=false / batch), `effective_bucket` falls back to Python screen.
+  - Structured output fields: `grounded_claims`, `training_flags`, `unresolved` — not buried in prose.
 
 ---
 

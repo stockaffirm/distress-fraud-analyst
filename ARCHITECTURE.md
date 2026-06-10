@@ -76,17 +76,23 @@
  EFFECTIVE BUCKET  =  AVOID(insolvency | cash_burn | fraud)
                       | DISTRESSED-RECOVERABLE | WATCH | CLEAR
    │
-   ▼  (only when explanation requested — Mode 2 subagent or Mode 3 API with explain=true)
- LAYER 3  LLM INVESTIGATOR  (llm_client.py)
-   │   Receives: full 5yr financials (every field) + screen output + live API signals
+   ▼  (only when explain=true — Mode 2 subagent or Mode 3 API)
+ LAYER 3  LLM INVESTIGATOR  (llm_client.py)  ← PRIMARY ANALYST
+   │   Receives: full 5yr financials + Python screen (as evidence) + live API signals
    │   Runs investigation loop per notable signal:
    │     HYPOTHESIZE (training) → LOOK UP (data) → CONFIRM/REFUTE → LABEL
-   │   Every claim labeled:
-   │     [GROUNDED: field=value, fy=YYYY]  — data confirms it
-   │     [TRAINING-FLAG: hypothesis]       — recognized pattern, not data-confirmed
-   │   Never asserts facts not present in the provided data
+   │   Returns structured JSON verdict:
+   │     bucket          — LLM's OWN verdict; becomes effective_bucket (primary)
+   │     confidence      — "high"|"medium"|"low"
+   │     grounded_claims — [{claim, field, value, fy}]  ← [GROUNDED]
+   │     training_flags  — [{concern, why_ungrounded, investigate, urgency}]  ← [TRAINING-FLAG]
+   │     unresolved      — [{screen_flag, explanation, next_step}]
+   │     narrative       — 2-4 sentence WHY
+   │   LLM MAY disagree with Python screen — explains why in narrative
+   │   TRAINING-FLAG(distress/fraud/watch) = valid bucket when risk is suspected but ungroundable
    ▼
- CITED VERDICT  (every factual claim traceable to a data point or flagged as hypothesis)
+ EFFECTIVE_BUCKET  =  LLM bucket (primary, explain=true)  |  Python screen (fallback, explain=false)
+   screen_bucket / screen_flags  =  Python evidence (always present, secondary)
 ```
 
 ## 3. The bucketing logic (how a name lands)
@@ -231,9 +237,11 @@
 
 ## Legend
 - **Layer 1 = Python, deterministic** (fundamentals → candidate bucket; 7 models).
-- **Layer 2 = Python, live Massive API** (news/short/raise → confirm or correct).
-- **effective_bucket = Layer1 ⊕ Layer2 = the final answer** (no LLM in the loop).
-- **Layer 3 = LLM Investigator** — receives full financials + signals, grounds every
-  claim in data, labels [GROUNDED] or [TRAINING-FLAG]. Optional; never changes the bucket.
-- **Calibration LLM** — only enters to encode a general fix when screen ≠ API. Separate
-  from Layer 3 (explanation) and also separate from the bucket logic.
+- **Layer 2 = Python, live Massive + AV API** (news/short/raise → confirm or correct). Both at limit=200.
+- **screen_bucket = Layer1 ⊕ Layer2** — Python's verdict; always present as secondary evidence.
+- **Layer 3 = LLM Investigator (PRIMARY)** — receives full financials + Python screen as evidence.
+  Issues its own structured JSON verdict. `effective_bucket` = LLM bucket when explain=true.
+  TRAINING-FLAG(distress/fraud/watch) = valid bucket when risk is suspected but ungroundable.
+  Falls back to Python screen_bucket if LLM is unavailable or explain=false.
+- **Calibration LLM** — only enters to encode a general fix when screen ≠ API. Separate from
+  Layer 3 (investigation/verdict) and entirely separate from the bucket evaluation logic.

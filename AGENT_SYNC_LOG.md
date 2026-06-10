@@ -13,3 +13,5 @@ _When a brain doc changes, the distress-fraud-analyst agent md manifest is regen
 - 2026-06-09 12:10 — synced; changed: CALIBRATION_LEDGER.csv, CALIBRATION_LOG.md, DISTRESS_AGENT.md
 - 2026-06-09 12:11 — method-doc edit: DISTRESS_AGENT.md/CALIBRATION_LOG.md added `loop_runner.py` (head-less resumable runner) + `state_db.py` (SQLite state) → updated agent md Calibrate command + AGENT_PLAYBOOK.md §4.
 - 2026-06-09 12:11 — synced; changed: AGENT_PLAYBOOK.md
+- 2026-06-09 21:56 — synced; changed: AGENT_PLAYBOOK.md
+- 2026-06-09 21:56 — method-doc edit: AGENT_PLAYBOOK.md added §1 Grounding Protocol ([GROUNDED]/[TRAINING-FLAG] labels) + §8 'Python decides bucket, LLM explains' → added grounding contract to agent md 'The verdict' section.

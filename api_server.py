@@ -30,11 +30,29 @@ POST /analyze/batch body:
 Response schema (single ticker):
   {
     "ticker":           "VFS",
-    "screen_bucket":    "AVOID",
-    "effective_bucket": "AVOID",
-    "distress_type":    "insolvency",
-    "fraud":            false,
-    "verdict":          "AVOID_unconfirmed",
+    "effective_bucket": "AVOID(insolvency)",   // LLM verdict when explain=true; Python screen when explain=false
+    "effective_source": "llm",                 // "llm" or "screen"
+
+    "llm_verdict": {                           // null when explain=false or no LLM key
+      "bucket":          "AVOID(insolvency)",  // LLM's own verdict — AVOID/WATCH/CLEAR/TRAINING-FLAG(*)
+      "confidence":      "high",               // "high"|"medium"|"low"
+      "one_line_risk":   "...",
+      "grounded_claims": [{"claim":"...","field":"...","value":"...","fy":2024}],
+      "training_flags":  [{"concern":"...","why_ungrounded":"...","investigate":"...","urgency":"high"}],
+      "unresolved":      [{"screen_flag":"...","explanation":"...","next_step":"..."}],
+      "narrative":       "2-4 sentence WHY..."
+    },
+
+    "screen_bucket":    "AVOID",               // Python 7-model screen (secondary evidence)
+    "screen_flags": {                          // Python screen details (secondary)
+      "distress_type":   "insolvency",
+      "fraud":           false,
+      "fraud_watchlist": false,
+      "verdict":         "AVOID_unconfirmed",
+      "note":            "...",
+      "effective_reason":"..."
+    },
+
     "market_cap":       7509911040,
     "sector":           "CONSUMER CYCLICAL",
     "signals": {
@@ -43,9 +61,7 @@ Response schema (single ticker):
       "short_dtc": 4.97, "n_news": 50,
       "n_bk_events": 0, "n_fraud_events": 0
     },
-    "note":             "...",
-    "effective_reason": "...",
-    "explanation":      "... (LLM text, null if explain=false or no key)"
+    "explanation": "..."                       // convenience alias for llm_verdict.narrative (null if no LLM)
   }
 
 Run:
@@ -92,42 +108,48 @@ def _ensure_imports():
 def analyze_ticker(ticker, explain=False, model=None):
     """
     Run the full pipeline for one ticker.
-    When explain=True, passes FULL multi-year financials + live API signals to
-    the LLM so it can investigate and ground every claim in actual data.
+
+    explain=False (default, fast):
+      Layers 1+2 only (Python screen). effective_bucket = Python verdict.
+      No LLM call, no AV fetch beyond the cache.
+
+    explain=True (full investigation):
+      Layers 1+2+3. Full financials + live API signals passed to LLM.
+      LLM issues its OWN verdict — effective_bucket = LLM bucket (primary).
+      Python screen moves to screen_bucket / screen_flags (secondary evidence).
+      If LLM fails, falls back to Python screen bucket.
+
     Returns a clean dict ready for JSON serialisation.
     """
     _ensure_imports()
     ticker = ticker.upper().strip()
 
-    # Layer 1 + 2: deterministic Python screen
+    # Layer 1 + 2: deterministic Python screen (always runs — source of evidence)
     try:
         result = _process_one(ticker, write=False)
     except Exception as e:
         return {"ticker": ticker, "error": f"pipeline error: {e}",
-                "effective_bucket": "ERROR"}
+                "effective_bucket": "ERROR", "effective_source": "error"}
 
-    # Fetch full financials + raw API signals for LLM investigation
-    # (only when explain=True to avoid unnecessary AV calls on fast/batch queries)
-    full_hist = None
-    api_raw   = None
-    if explain and _llm_client and _llm_client.active:
-        try:
-            from data_loader import load_fundamentals, full_history
-            from massive_api import event_scan
-            fund      = load_fundamentals(ticker)
-            full_hist = full_history(fund) if fund else None
-            api_raw   = event_scan(ticker)
-        except Exception:
-            pass   # LLM will still run with whatever it has
-
-    out = {
-        "ticker":           result.get("ticker", ticker),
-        "screen_bucket":    result.get("bucket", "UNKNOWN"),
-        "effective_bucket": result.get("effective_bucket", "UNKNOWN"),
+    # Python screen details (always secondary when LLM runs)
+    python_effective = result.get("effective_bucket", "UNKNOWN")
+    screen_flags = {
         "distress_type":    result.get("distress_type") or None,
         "fraud":            bool(result.get("fraud")),
         "fraud_watchlist":  bool(result.get("fraud_watchlist")),
         "verdict":          result.get("verdict", ""),
+        "note":             result.get("note") or "",
+        "effective_reason": result.get("effective_reason") or "",
+    }
+
+    out = {
+        "ticker":           result.get("ticker", ticker),
+        # effective_bucket and effective_source set below (LLM or Python)
+        "effective_bucket": python_effective,
+        "effective_source": "screen",
+        "llm_verdict":      None,        # filled when explain=True and LLM succeeds
+        "screen_bucket":    result.get("bucket", "UNKNOWN"),   # Python 7-model verdict
+        "screen_flags":     screen_flags,                       # Python details
         "market_cap":       result.get("market_cap"),
         "sector":           result.get("sector") or "Unknown",
         "signals": {
@@ -140,21 +162,41 @@ def analyze_ticker(ticker, explain=False, model=None):
             "n_bk_events":      result.get("n_bk_events", 0),
             "n_fraud_events":   result.get("n_fraud_events", 0),
         },
-        "note":             result.get("note") or "",
-        "effective_reason": result.get("effective_reason") or "",
-        "explanation":      None,
+        "explanation": None,    # convenience alias for llm_verdict.narrative
     }
 
     if explain and _llm_client and _llm_client.active:
+        # Fetch full financials + live API signals for LLM investigation
+        full_hist = None
+        api_raw   = None
+        try:
+            from data_loader import load_fundamentals, full_history
+            from massive_api import event_scan
+            fund      = load_fundamentals(ticker)
+            full_hist = full_history(fund) if fund else None
+            api_raw   = event_scan(ticker)
+        except Exception:
+            pass   # LLM still runs with whatever it has
+
         client = _llm_client if not model else \
                  type(_llm_client)(provider=_llm_client.provider, model=model)
-        # Pass full financials + raw API signals so LLM can ground every claim
-        explanation, err = client.explain(
+
+        # Layer 3 — LLM investigation: returns structured verdict dict
+        verdict, err = client.explain(
             ticker, result, full_hist=full_hist, api_raw=api_raw
         )
-        out["explanation"] = explanation
-        if err and not explanation:
-            out["explanation_error"] = err
+
+        if verdict and isinstance(verdict, dict) and verdict.get("bucket"):
+            # LLM succeeded — it is the primary effective_bucket
+            out["llm_verdict"]      = verdict
+            out["effective_bucket"] = verdict["bucket"]
+            out["effective_source"] = "llm"
+            out["explanation"]      = verdict.get("narrative")   # convenience alias
+        else:
+            # LLM failed — fall back to Python screen; surface the error
+            out["effective_source"] = "screen"
+            if err:
+                out["llm_error"] = err
 
     return out
 
