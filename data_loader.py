@@ -18,7 +18,7 @@ Key lookup order:
   2. AV_API_KEY env var
   3. .env file (next to this script, then project root, then stockaffirm/.env)
 """
-import os, json, time, sqlite3, urllib.request, urllib.error
+import os, csv, json, time, sqlite3, urllib.request, urllib.error, functools
 from pathlib import Path
 
 # ---- config -----------------------------------------------------------------
@@ -310,6 +310,31 @@ def load_context(ticker):
         "52w_high":         _n(ov.get("52WeekHigh")),
         "52w_low":          _n(ov.get("52WeekLow")),
     }
+
+
+# ---- _recs compatibility shim ----------------------------------------------
+# calibrate.py imports _recs to build the ordered calibration universe.
+# If the local StockAffirm recommendations.csv exists, read it (local install);
+# otherwise return an empty dict (shipped/standalone install — universe comes
+# from the caller, not from _recs).
+_RECS_PATHS = [
+    Path("/Users/prasadmenon/Claude/StockAffirmProject/stockaffirm") /
+    "cache/data/output/2026-06-07/recommendations.csv",
+]
+
+@functools.lru_cache(maxsize=1)
+def _recs():
+    for p in _RECS_PATHS:
+        if p.exists():
+            out = {}
+            try:
+                with open(p, newline="") as f:
+                    for row in csv.DictReader(f):
+                        out[row["ticker"].upper()] = row
+                return out
+            except Exception:
+                pass
+    return {}   # standalone mode — caller supplies tickers directly
 
 
 # ---- financial_history and full_history ------------------------------------
