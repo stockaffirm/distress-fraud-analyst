@@ -1,0 +1,463 @@
+ticker,fwd_growth,mature_margin,note
+SBUX,0.05,0.16,"gross_margin=1.0 is a data artifact so I set mature_margin from opm_peak (~15-16%), looking THROUGH the 8.4% TTM trough; 5% growth normalizes the Back-to-Starbu"
+NEM,0.06,0.26,Cut the baseline 25% growth and 61% AV TTM op margin to mid-cycle (6% / 26%): the trailing numbers ride a gold-price spike that is not a durable through-cycle a
+FTNT,0.14,0.32,"Decelerated from the 19% trailing CAGR to 14% as the firewall refresh cycle matures, holding the structural ~32% op margin (asset-light security, gross>76%). My"
+MDT,0.04,0.22,"Lowered the baseline 28.4% margin to the ~22% structural op margin that AV TTM (21.3%) confirms, with 4% growth matching MDT's low-single-digit organic trajecto"
+SO,0.045,0.26,Normalized the baseline 7.1% growth to a regulated-utility 4.5% rate-base trajectory and trimmed margin to 26%; raised uncertainty to Medium for rate-case/capex
+PWR,0.16,0.06,"Quanta is a ~6%-op-margin grid/electrical EPC; even at 16% growth a clean DCF yields ~$266, far below the ~$700 price and AV PT $761. The market is pricing a gr"
+CDNS,0.14,0.38,"Held the durable mid-teens growth (14%) and a high ~38% structural margin for the EDA duopoly (wide moat, gross>88%, ROIC ~29%). My $311 is below AV PT $384/pri"
+GSK,0.05,0.27,"UK pharma ADR; set 5% growth and a 27% structural op margin (AV TTM 36% is flattered by one-offs). My $47 sits just below AV PT $57.94, reflecting a patent-clif"
+SPOT,0.14,0.13,"The baseline 8.7% margin used a depressed historical opm; AV TTM op margin is now 15.8% and expanding on price hikes/ad scale, so I lifted mature_margin to 13% "
+ADBE,0.08,0.33,Raised uncertainty to Medium - the GenAI competitive threat is a qualitative risk the model can't see (MS cut to Narrow moat for it) - and decelerated growth to
+TT,0.09,0.17,"Held ~9% growth (matching trailing) and the 17% structural margin (AV TTM 15.5%, peak rising) for a quality HVAC/decarbonization compounder. My $346 is below AV"
+DUK,0.045,0.26,"Normalized the baseline 6.3% growth to a 4.5% regulated rate-base trajectory, margin 26%, and lifted uncertainty to Medium for rate-case risk. My $165 is ~26% a"
+CNQ,0.02,0.26,"Canadian Natural is a cyclical oil producer; gross_margin=1.0 is an artifact and the 42% baseline margin is a peak, so I cut to a mid-cycle 26% with 2% volume g"
+GD,0.07,0.115,AV OVERVIEW returned empty so I valued off the model+financials: a defense prime with steady 7% growth (backlog-driven) and an ~11.5% structural op margin (Gulf
+MCK,0.06,0.017,Drug distributor with a structurally razor-thin ~1.7% op margin on ~$400B revenue (by design); set 6% growth on the distribution/oncology platform. That trims t
+ADP,0.07,0.25,"Wide-moat payroll/HCM compounder; held ~7% growth and the ~25% structural op margin (high ROIC ~43%, sticky recurring base + float income). My $292 sits above A"
+FDX,0.03,0.06,"Overrode the data-artifact margin (gross 1.0, baseline 0.42) down to 0.06 from opm_peak 0.063; this corrected an absurd $2157 fair value to $280, consistent wit"
+VLO,0.03,0.05,"Refiner at a trough (opm_recent 0.029, peak 0.039); normalized mature_margin up to 0.05 mid-cycle, lifting fair value from $172 to $226."
+NXPI,0.03,0.245,"Auto/industrial semi at peak margin (opm_recent=peak=0.275); normalized mature_margin down to mid-cycle 0.245, lowering fair value from $148 to $127."
+GM,0.074,0.05,"Cyclical automaker at peak margin (opm_peak 0.059); normalized mature_margin down to mid-cycle 0.05, trimming fair value from $139 to $100."
+EOG,0.049,0.3,E&P whose opm_recent of 34% exceeds peak 28% on high commodity prices; I normalized the 42% mature margin down to 30% as a mid-cycle through-the-cycle level for
+MPWR,0.165,0.261,"Power-analog leader; baseline 23.5% growth extrapolates recent hypergrowth on a $73B firm so I decelerated to 16.5%, a more durable rate for a maturing analog f"
+NSC,0.03,0.36,"Norfolk Southern rail with gross_margin artifact at 1.0; I trimmed the 42% mature margin to 36% to align with opm_recent 33.6%/peak 35.3%, reflecting its post-i"
+DASH,0.17,0.109,"DoorDash delivery platform; baseline 25% growth pins the cap on a $68B firm, so I decelerated to 17% as scale moderates volume growth, and kept the 11% mature m"
+NU,0.18,0.242,"Decelerated the capped 25% hypergrowth to 18% for a now-$58B LatAm digital bank scaling off 40-75% historicals; held the ~24% margin, lowering FV from 28.5 to 2"
+NUE,0.03,0.1,"Cyclical steelmaker; normalized margin from the 0.117 (near-peak) baseline to a mid-cycle 0.10 between recent 0.092 and peak 0.133, keeping 3% growth given flat"
+TRGP,0.05,0.14,"Midstream gatherer/processor; recent opm 0.165 sits above peak 0.083 due to mix, so normalized margin to mid-cycle 0.14 with 5% growth."
+OXY,0.04,0.19,Fixed the gross_margin 0.88 artifact (COGS in opex inflated baseline 0.37 margin) by setting mature_margin to recent opm 0.19; kept conservative 4% growth on de
+OKE,0.07,0.186,"Decelerated the capped 26.8% growth (driven by acquisition-inflated rev CAGR) to 7% organic for a mature midstream operator, cutting FV from an absurd 926 to 12"
+FANG,0.08,0.42,"Permian E&P; decelerated capped 26.6% growth (acquisition/price-inflated) to 8% and set mid-cycle 0.42 margin between recent 0.399 and peak 0.502, cutting FV fr"
+COR,0.1,0.02,"Cencora drug distributor; held razor-thin ~2% margin (correct given pass-through gross 0.031) and trimmed growth to 10%, but huge gross-revenue base structurall"
+SE,0.18,0.12,"Decelerated the 0.25 cap to 0.18 as Shopee/SeaMoney/Garena scale slows from hypergrowth, and lifted mature margin from a depressed 3.9% to 12% to reflect the re"
+WPM,0.12,0.45,"Cut the 0.28 cap to 0.12 since the 3y CAGR of 51% is a metals-price spike, not durable; a streaming royalty model grows with new deals plus metal prices, so kep"
+DAL,0.142,0.1,Engine flags out-of-model on a false revenue-collapse trigger and a 0.897 gross-margin artifact (COGS in opex); I reset margin to a realistic ~10% airline opera
+LNG,0.031,0.38,"Kept baseline 3% growth, but trimmed the mature margin from a peak-inflated 45.6% recent to a more normalized 38% since Cheniere's take-or-pay margins fluctuate"
+MCHP,0.05,0.18,Microchip is flagged out-of-model (fv <18% of price); I normalized the cyclical semi from a -21% 3y trough toward 5% recovery growth and an 18% margin between t
+HEI,0.14,0.21,Decelerated the hot 23.9% baseline to a still-strong 14% since HEICO's aerospace-aftermarket roll-up cannot compound at peak rates at $46B; at a defensible 14%/
+GRMN,0.1,0.25,Trimmed growth to 10% (between the 9.8% 5y and 17.7% 3y) and held the structural ~25% op margin; the wide-moat fitness/aviation/marine franchise gives a $307 FV
+ON,0.06,0.22,"Analog/power semis are mid-cycle: 5y/3y revenue is negative on the auto/industrial inventory correction, so I set 6% normalized growth and a 22% mid-cycle margi"
+DEO,0.04,0.3,"Diageo is a spirits ADR in a destocking trough (QoQ rev -4%, 3y CAGR negative); I used a low 4% normalized growth and the structural ~30% margin, giving a $30 F"
+IDXX,0.09,0.31,"IDEXX is a wide-moat companion-vet diagnostics razor/blade compounder; I held ~9% growth and lifted margin to the recent 31%, but even so the $494 FV is well un"
+WAB,0.07,0.155,"Wabtec is a freight/transit rail-equipment compounder with improving margins; at 7% growth and the recent 15.5% op margin the FV is $102, below the AV PT of $30"
+CLS,0.16,0.07,Celestica is an AI-server/networking EMS riding hyperscaler capex (QoQ rev +53%); I decelerated to 16% durable growth and lifted the thin EMS margin to 7% for o
+AU,0.06,0.3,"AngloGold's 47% 5y revenue CAGR and 56% TTM op margin are a gold-price spike, not durable; I normalized to mid-cycle 6% growth / 30% margin with High uncertaint"
+FNV,0.1,0.6,Franco-Nevada is an asset-light gold/PGM streaming-royalty company; I kept the structural ~60% margin but used 10% growth (new deals plus metal price) rather th
+HUM,0.05,0.035,Humana's 1.3% TTM op margin is a Medicare Advantage medical-cost-ratio trough; I looked through it to a normalized ~3.5% margin on 5% growth and set uncertainty
+CCEP,0.05,0.13,"Coca-Cola Europacific's 15.5% 5y CAGR is the Amatil/API acquisition, not organic; I normalized to 5% organic growth and the structural 13% bottler margin, givin"
+BDX,0.05,0.15,"Becton Dickinson is a steady medtech/diagnostics name growing low-single-digits; at 5% growth and the recent 15% op margin the FV is $105, under the AV PT of $1"
+YUM,0.06,0.32,"Yum Brands is a wide-moat, capital-light franchisor (KFC/Taco Bell/Pizza Hut) with 64% ROIC; at 6% unit-plus-comp growth and the structural 32% margin the FV is"
+KDP,0.05,0.215,"Keurig Dr Pepper is a stable beverage maker; at 5% growth and the steady 21.5% margin the FV is $22, just under the AV PT of $33, with the 13x forward PE vs 23x"
+GFS,0.06,0.15,"GlobalFoundries is a trailing-edge foundry in a utilization trough (3y CAGR negative); I used a 6% normalized recovery and 15% margin with High uncertainty, giv"
+DHI,0.03,0.14,"D.R. Horton is the scale homebuilder; I normalized down from peak (QoQ rev -2%) to 3% mid-cycle growth and a 14% through-cycle margin below the recent 16% peak,"
+XYZ,0.1,0.13,"Block is flagged non-DCF (fintech/payments) but a decelerated 10% growth and a normalized 13% margin (it just turned GAAP-profitable, ProfitMargin 3.3%) yields "
+ALNY,0.28,0.33,Alnylam just inflected to GAAP profit with revenue +96% YoY on its RNAi franchise; holding a 28% near-term growth and a 33% steady-state margin lands FV at $450
+TEVA,0.03,0.17,"Looking through the depressed opm_recent (2.7%, a charge artifact) to Teva's true ~17-19% operating margin and a modest 3% growth on the Austedo/Uzedy branded p"
+TTWO,0.12,0.18,"Take-Two's opm_recent of -67% is an impairment/Zynga-amortization artifact; normalizing to an 18% margin and 12% growth gives $178, below AV's $279 PT which pri"
+PEG,0.05,0.2,The baseline 28% margin is a utility gross-margin artifact (purchased-power excluded); resetting to the real ~20% operating margin with 5% rate-base growth give
+WCN,0.09,0.18,"Waste Connections is a roll-up solid-waste compounder; decelerating its 11% CAGR to 9% on an 18% margin gives $108, well below AV's $204 PT and ~$185 price beca"
+AXON,0.22,0.2,"Axon's opm_recent of 2.8% is SBC/growth-investment suppressed; normalizing to a 20% margin at scale and decelerating the 34% CAGR to 22% gives $304, far under A"
+ED,0.04,0.19,"Con Ed's baseline 31.9% margin is a gross-margin artifact; using its real ~19% operating margin with 4% rate-base growth gives $117, right on AV's $110 PT and t"
+JD,0.05,0.025,"JD.com is a thin-margin (1-2.5%) Chinese e-commerce ADR; a 5% growth and 2.5% structural margin gives $28, below AV's $41 PT and the ~$33 price, with High uncer"
+ADM,0.02,0.025,"Archer-Daniels is a no-moat ag-commodity processor in a down-cycle (rev -7.6% 3y); valuing at mid-cycle 2.5% margin and 2% growth gives $36, below AV's $74 PT a"
+TKO,0.15,0.21,"TKO (UFC/WWE) is a live-sports media-rights compounder; decelerating its 21% CAGR to 15% on a 21% margin gives $101, below AV's $234 PT and ~$185 price that ful"
+STLD,0.03,0.11,"Steel Dynamics is a low-cost mini-mill steelmaker; using a mid-cycle 11% margin (between the 11% trough and 15% peak) and 3% growth gives $162, below AV's $256 "
+ESLT,0.12,0.09,"Elbit Systems is an Israeli defense ADR riding the global rearmament cycle; a 12% growth on its true ~9% operating margin gives $451, near the ~$430 price but f"
+A,0.05,0.22,"Agilent is a wide-moat life-sciences tools maker in a soft instruments cycle; a 5% recovery growth on its 22% margin gives $119, modestly below AV's $161 PT and"
+PCG,0.05,0.16,"PG&E's baseline 32.8% margin is a gross-margin artifact; using its real ~16% operating margin with 5% rate-base growth gives $32, above AV's $23 PT and the ~$18"
+CMG,0.085,0.165,"Chipotle is a wide-moat compounder with elite unit economics (ROIC 49%); trimming growth to 8.5% pulls FV to $41.82 (ratio_vs_ms 1.16, down from 1.32) which now"
+TRI,0.045,0.29,"Wide-moat legal/tax/news-data compounder, but gross_margin==1.0 was a missing-COGS artifact forcing a phantom 42% mature_margin; corrected to the real ~29-30% O"
+HSY,0.045,0.22,"Wide-moat US confection leader; mature margin held near the real ~22% OPM (gross 45% is clean here), FV $224 lands right on the AV PT of $217 with a low-WACC st"
+JBL,0.05,0.045,EMS contract manufacturer with structurally thin ~4.5% operating margins (no real wide moat despite the model tag); FV $222 is well below the AV PT $316 that pr
+LYV,0.1,0.05,"Live Nation flagged out_of_model on a revenue-collapse artifact; GAAP-unprofitable (EPS -1.77, OPM -10%) with deferred-event accounting and a DOJ antitrust brea"
+IRM,0.117,0.194,"Iron Mountain is a records-storage/data-center REIT (dcf_applicable=false); value on AFFO multiple, not DCF. AV PT $131 vs a ~135x trailing GAAP P/E reflects FF"
+WEC,0.045,0.22,Regulated WI/IL utility; mature margin held to the real ~22-29% OPM rather than the inflated 64% gross artifact. FV $70 is conservative vs AV PT $124 and a ~$10
+VMC,0.06,0.18,"Aggregates leader with local-monopoly pricing power, but on mid-cycle ~18% margins the DCF gives $148 against an AV PT $326 / ~$280 price; the market pays a pre"
+SYY,0.05,0.04,Sysco is the scale leader in foodservice distribution on structurally thin ~4% margins; FV $99 sits slightly above the AV PT $87 and looks fairly-to-undervalued
+PYPL,0.064,0.194,PayPal is a payments financial (dcf_applicable=false); the model still leaked a $176 DCF FV that is meaningless. At fwd PE ~8 and AV PT $51 vs a ~$70 price it i
+EME,0.1,0.09,EMCOR is a best-in-class electrical/mechanical contractor riding datacenter/electrification demand; decelerating the unsustainable 15% trailing growth to a stil
+PRU,0.03,0.078,Prudential is a life insurer/asset manager (dcf_applicable=false); the model leaked an absurd $699 DCF FV against a ~$110 price. Value on P/B x ROE or normalize
+ASTS,0.25,0.113,"AST SpaceMobile is pre-revenue direct-to-cell satellite optionality (OPM -10x, model FV $1.21 vs AV PT $82); the ~$36B cap is pure venture-stage optionality on "
+HIG,0.067,0.153,The Hartford is a P&C/group-benefits insurer (dcf_applicable=false); model leaked $264 DCF vs a ~$120 price. At fwd PE ~10 and AV PT $148 it is a well-run insur
+PAYX,0.067,0.394,Paychex is a wide-moat payroll/HR-outsourcing compounder with genuine ~39-44% operating margins and high ROIC; baseline FV $142 is sound and sits above the AV P
+WAT,0.05,0.27,Waters is wide-moat analytical instruments (LC/MS) with a recurring razor-and-blade base; using the real ~27% peak margin and modest 5% growth gives FV $325 vs 
+RKT,0.045,0.409,"Rocket Companies is a rate-cyclical mortgage originator (dcf_applicable=false, flagged out_of_model on revenue collapse) mid-acquisition of Mr. Cooper/Redfin; G"
+WDAY,0.12,0.28,"Workday is a sticky HCM/financials SaaS leader; valuing on a ~28% FCF margin (GAAP OPM is SBC-suppressed) and decelerated 12% growth gives FV $215, above the AV"
+MLM,0.05,0.22,"Martin Marietta is an aggregates major with local pricing power, but at mid-cycle ~22% margins the DCF yields $278 versus an AV PT $683 and a ~$560 price; the m"
+UI,0.08,0.3,"Ubiquiti runs a capital-light, community-driven networking model at genuine ~28-37% margins; even crediting a 30% mature margin and 8% growth, FV $318 is far be"
+UAL,0.05,0.08,United Airlines is a capital-intensive cyclical with a gross_margin==1.0 missing-COGS artifact that forced a phantom 42% margin and an absurd $3470 DCF; flagged
+TWLO,0.135,0.113,Twilio is a usage-based CPaaS name flagged out_of_model on extreme priced-in growth; GAAP OPM only just turned positive and the moat is weak. Fwd PE 42 vs trail
+HEI.A,0.12,0.22,HEICO is a serial-acquirer aerospace-aftermarket (PMA parts) compounder; even on a strong 12% decelerated growth and 22% margin the DCF gives $194 versus AV PT 
+KVUE,0.03,0.197,"Kenvue is the J&J consumer-health spin (Tylenol, Neutrogena) with strong brands but flat ~0% growth; baseline FV $19.50 lands exactly on the AV PT $19.50, and u"
+SATS,0.03,0.1,"EchoStar/DISH is a deeply distressed, debt-laden wireless/satellite restructuring (model FV negative, EPS -50, declining revenue); flagged out_of_model and Extr"
+EQT,0.05,0.3,"EQT is the largest US natural-gas E&P, a commodity-price-taker with no moat; valued on a mid-cycle gas deck (margin trimmed from the current 35% trough/peak tow"
+ROP,0.09,0.291,"Wide-moat vertical-software/measurement compounder; baseline 13.1% growth is too hot for a $33B serial acquirer, so I decelerated to 9% giving FV $498 vs AV PT "
+HBAN,0.07,,Regional bank (dcf_applicable=false); the model's $141 FV is a DCF-leak artifact (~9x the ~$16 price) so I suppress it and value on normalized P/E - AV PT $19.8
+RDDT,0.4,0.3,"Reddit has <3y public history so the model errors out; AV shows 69% QoQ rev growth, fwd PE 40, and a newly-positive 27.6% op margin - a hypergrowth social/ads p"
+ZTS,0.051,0.361,Wide-moat animal-health leader with durable 36% margins and steady mid-single-digit growth; baseline $173 stands - above the 12-mo AV PT $124 because that PT is
+LVS,0.1,0.235,Model flags >45% rev collapse (COVID Macau shutdown then divesting Las Vegas) so it's out-of-model; AV PT $69 vs ~$45 price reflects a Macau/Singapore recovery 
+QSR,0.08,0.3,"Asset-light franchisor (Burger King/Tim Hortons/Popeyes); baseline 14.3% growth overstates a mature royalty model, so I set 8% growth / 30% margin for FV $76, r"
+NTAP,0.03,0.278,"Mature enterprise-storage vendor with low-single-digit growth and improving 27% margins; baseline $163 lands almost exactly on AV PT $169.88, so no override nee"
+KMB,0.03,0.162,"Wide-moat consumer-tissue staple with flat-to-declining revenue but stable ~16% margins; baseline $120 sits right on AV PT $114, so the model is well-calibrated"
+HAL,0.04,0.12,"No-moat oilfield-services name; I applied mid-cycle 4% growth / 12% margin (vs trailing 16.7% peak opm) for FV $31, below the AV PT $44 which embeds a fuller ac"
+ALC,0.055,0.188,Eyecare (surgical + vision) leader with genuinely thin ~11-19% margins; baseline $48 is conservative vs AV PT $89 which assumes margin expansion my model treats
+MTB,0.05,,Regional bank (dcf_applicable=false); the $1600 model FV is a pure DCF-leak artifact (~8x the ~$190 price) so I null it and lean on AV PT $233 / ~12x earnings -
+NTR,0.03,0.14,"Cyclical potash/nitrogen + ag-retail; trailing margins are at a trough (opm 9.8%) so I normalized to mid-cycle 14% margin with High uncertainty, lifting FV to $"
+RPRX,0.05,0.63,"Royalty Pharma is a quasi-financial royalty aggregator - baseline $11.57 is broken (low book ROIC on intangible-heavy acquired royalties), and even raising marg"
+EXR,0.04,,Self-storage REIT (dcf_applicable=false); the $503 model FV is a DCF-leak artifact (~3x the ~$150 price) so I null it and value on FFO/AFFO multiple - AV PT $15
+PUK,0.06,,Prudential PLC ADR is both an insurer (dcf_applicable path invalid) and flagged out-of-model on a rev-collapse from the M&G/Jackson demergers; value rests on As
+ACGL,0.08,,Arch Capital is a specialty insurer/reinsurer (dcf_applicable=false); the $760 model FV is a DCF-leak artifact (~8x the ~$95 price) so I null it and value on P/
+VG,0.3,0.25,"Venture Global is a newly-public LNG exporter with <3y history so the model errors out; AV shows 59% rev growth and a 25% op margin, but value hinges on contrac"
+RVMD,,,Revolution Medicines is a clinical-stage RAS(ON)-inhibitor oncology biotech with ~$0.7M revenue and -$7.12 EPS; the DCF crashes on null revenue (logged as a str
+NTRS,0.06,,Northern Trust is a custody/wealth bank (dcf_applicable=false); the $1573 model FV is a DCF-leak artifact (~13x the ~$120 price) so I null it and value on norma
+KGC,0.06,0.3,"No-moat gold miner whose baseline 25% growth and 30%+ margins are entirely a record-gold-price spike; I normalized to mid-cycle gold (6% growth, 30% margin, Hig"
+CQP,0.02,0.32,Cheniere Energy Partners is a contracted-LNG MLP; even after trimming growth to 2% and applying Very-High uncertainty the model FV $88 stays well above AV PT $6
+TS,0.04,0.2,"Tenaris (steel OCTG pipes, ADR) is at a cyclical trough (rev_cagr_3 -10%); I applied mid-cycle 4% growth / 20% margin for FV $22, well below AV PT $64 which pri"
+NTRA,0.3,0.1,Natera (genetic-testing/Signatera) is flagged out-of-model for pricing >=40% growth; it's still GAAP-unprofitable (opm -13.4%) and the market is paying for MRD/
+CNC,0.04,0.022,"Centene is a managed-care insurer in an earnings trough (negative TTM EPS from 2025 ACA-marketplace losses); the baseline $393 was absurd, so I cut growth to 4%"
+IQV,0.06,0.16,"IQVIA is a scaled CRO + healthcare-data leader the model undervalues at baseline ($94, no moat, 13.4% margin); I lifted growth to 6% and margin to 16% to reflec"
+DTE,0.05,0.145,"Cached gross_margin=1.0 is a regulated-utility artifact, so I derived mature_margin from the true op margin (~0.10-0.17) rather than gross; FV falls from $770 t"
+AEE,0.065,0.22,"Utility gross-margin artifact (0.839) corrected to a real op margin ~0.22 (opm_recent 0.208, AV TTM 0.278); FV $135 sits just above AV PT $120 on regulated rate"
+EL,0.04,0.13,Estee Lauder op margin collapsed to 0.062 from a 0.167 peak (China/travel-retail destocking); looking through the trough to a normalized ~0.13 margin gives $100
+FSLR,0.12,0.2,"First Solar's TTM op margin 0.331 is inflated by IRA 45X credits that normalize; using a mid-cycle 0.20 margin and 12% growth gives $222, right at AV PT $244 an"
+RBLX,0.2,0.18,"GAAP op margin is -0.16 (heavy infra/SBC), so I value on a normalized ~0.18 FCF/bookings margin and a decelerated 20% growth (bookings still +39% YoY); FV $73 v"
+ZM,0.05,0.34,"Zoom is now a slow-growth, highly cash-generative platform (FCF/profit margin ~0.34-0.42); a 5% growth, 0.34 margin DCF gives $104, between price ~$80 and AV PT"
+GEHC,0.04,0.13,GE HealthCare margin trued to ~0.13 (AV opmTTM 0.111 vs baseline 0.148) with 4% growth; FV $93 sits just above AV PT $80 and price ~$75 on a wide installed base
+FISV,0.03,0.25,Fiserv is a payments processor mis-tagged dcf_applicable=false; the DCF should apply. After a guidance-cut de-rating (fwdPE 6.75) I cut growth to 3% and margin 
+DOV,0.05,0.2,"Dover is a quality diversified industrial; lifting margin to a structural ~0.20 (with ongoing portfolio upgrade) gives $190 vs price ~$180, but well below the b"
+BIIB,0.0,0.28,"Biogen is a melting-franchise pharma (rev_cagr_5 -2.6%, MS-tox legacy decline) with a Leqembi-launch binary; using zero growth, a normalized 0.28 margin (vs 0.4"
+MTZ,0.07,0.065,MasTec is a thin-margin (0.04-0.06) cyclical infra/E&C roll-up; a mid-cycle 0.065 margin gives $195 (above price ~$130) but far below the speculative AV PT $473
+CPRT,0.09,0.36,"Copart is a wide-moat salvage-auction duopolist with 37% margins; even at a decelerated 9% growth FV is $57, above both AV PT $41 and price ~$50, so the stock l"
+FTS,0.04,0.3,"Fortis is a regulated Canadian utility ADR; correcting the gross-margin artifact (0.708) to a real ~0.30 op margin (AV opmTTM 0.288) gives $44, in line with pri"
+RMD,0.09,0.28,"ResMed is a wide-moat sleep-apnea device leader; decelerating growth to 9% for the GLP-1 demand overhang gives $276, right on AV PT $271 and above price ~$230."
+ATO,0.065,0.33,"Atmos is a pure-play regulated gas utility whose genuinely high op margin (~0.33, AV opmTTM 0.393) is real, not an artifact; FV $176 sits between price ~$155 an"
+TPR,0.06,0.2,Tapestry's cached 0.29 margin is gross-derived; using the real op margin ~0.20 (AV opmTTM 0.224) with a Coach-led brand reacceleration (rev +21% YoY) gives $125
+IR,0.08,0.22,"Ingersoll Rand's DCF gives only ~$49 vs price ~$90 / AV PT $93 because acquired growth carries low incremental ROIC (~6-8%, goodwill-heavy); the market prices c"
+CASY,0.109,0.048,"Casey's is a high-quality convenience/fuel compounder (16% 5y rev CAGR, stable 5% op margin, 11% ROIC) but the thin retail margin caps DCF at ~$426 while the ma"
+EIX,0.03,0.18,Baseline FV ($514) was a gross=1.0 data artifact (margin defaulted to 0.42); corrected to real ~16-18% regulated op margin and Very-High uncertainty for Califor
+MDB,0.2,0.2,MongoDB is GAAP-unprofitable but FCF-positive; valued on a ~20% mature FCF margin (not the -11% GAAP op margin which is SBC-suppressed) with decelerated 20% gro
+VEEV,0.13,0.31,"Wide-moat vertical SaaS for life sciences with 25% op / 30%+ FCF margin and 75% ROIC; decelerated 13% growth and 31% mature margin yields $286, above AV PT $248"
+DXCM,0.13,0.22,"DexCom is the wide-moat CGM leader (21% op margin, 15% quarterly rev growth); decelerated 13% growth at a 22% mature margin gives $73 vs AV PT $83 — close to fa"
+FOXA,0.03,0.17,Baseline $280 was a gross=1.0 artifact (margin defaulted to 0.42); corrected to ~17% real op margin and low-single-digit media growth gives $84 vs AV PT $74 — s
+ONC,0.25,0.22,"ONC = BeiGene (oncology ADR) just inflected to its first profitable year (FY25 rev $5.3B, +8% op margin, 87% gross, 37% ROIC, 46% 5y CAGR); model FV $47 is an A"
+TSEM,0.05,0.14,"Tower Semiconductor (Israeli analog foundry, ADR) — model FV $37 is flagged out-of-model (<18% of price) vs AV PT $314; a normalized 13% op-margin / low-growth "
+CNP,0.04,0.21,CenterPoint regulated utility; using the AV TTM op margin (~22%) and ~4% rate-base growth gives $36 vs AV PT $46 — slightly conservative but defensible for a re
+TDY,0.07,0.2,Teledyne is a disciplined serial-acquirer in defense/instrumentation (19% op margin); 7% growth at a 20% margin gives $436 vs AV PT $737 — the market pays a def
+EXPE,0.07,0.12,"Expedia OTA; baseline tripped the >45% revenue-collapse out-of-model flag (a data-classification quirk, not a real spin-off). Normalized at 7% travel growth and"
+NRG,0.06,0.07,"NRG is a Texas independent power producer (thin 6% op margin, volatile); crediting some data-center power-demand growth (6%) gives $158 vs AV PT $199 — the gap "
+CPNG,0.17,0.05,Coupang (Korean e-commerce) is inflecting from breakeven; modeling 17% growth toward a 5% mature retail/logistics margin gives $20 vs AV PT $26 — the value rest
+CW,0.09,0.19,"Curtiss-Wright (defense/nuclear/aerospace, 17-19% margin) modeled at 9% growth gives $345 vs AV PT $788 — the market pays a defense/nuclear-tailwind premium bey"
+STRL,0.15,0.16,Sterling Infrastructure is riding a data-center/e-infrastructure construction supercycle (+91% quarterly rev growth); even at 15% sustained growth and 16% margi
+CFG,0.086,0.361,"Citizens Financial is a bank — DCF is invalid (dcf_applicable=false). On normalized earnings it trades ~12x fwd P/E (25% profit margin, +14% rev growth); AV PT "
+OTIS,0.04,0.16,"Otis is an elevator oligopoly with a high-margin recurring service/maintenance annuity (15-16% op margin); 4% growth at a 16% margin gives $93, essentially matc"
+AVB,0.063,0.42,"AvalonBay is a coastal apartment REIT — DCF invalid (dcf_applicable=false); value on FFO/AFFO multiple. With low-single-digit same-store growth, AV PT $195 anch"
+PPL,0.045,0.25,"PPL regulated utility; using AV TTM op margin (~27%) and ~4.5% rate-base growth gives $43, essentially matching AV PT $41."
+TPL,0.1,0.55,"Texas Pacific Land is a unique Permian land/royalty + water perpetuity (76% op margin, no capex, 120% ROIC); even at a 55% margin the DCF reaches only $169 vs A"
+JBHT,0.05,0.095,"J.B. Hunt is in a freight recession (negative recent rev CAGR, trough 7.2% margin); normalizing to a mid-cycle ~9.5% margin and 5% growth gives $206 vs AV PT $2"
+FE,0.03,0.17,"FirstEnergy regulated T&D utility; baseline $200 was inflated by an over-high mature margin, corrected to ~17% op margin and 3% rate-base growth gives $50, matc"
+VRSN,0.055,0.45,"VeriSign runs the .com/.net registry monopoly (68% op margin, 50% net margin, Berkshire-owned); the model mislabels moat as None (should be Wide). DCF $119 at 5"
+KHC,0.01,0.13,"Kraft Heinz is in structural brand decline (negative rev CAGR, recent goodwill writedown drove negative GAAP EPS); flat ~1% growth at a deflated 13% margin give"
+FTI,0.1,0.13,TechnipFMC is an offshore energy-services name in a subsea capex recovery; modeling 10% growth and a mid-cycle 13% margin gives $36 vs AV PT $76 — the offshore-
+SYM,0.2,0.05,"Warehouse-automation robotics growing 70%+ but GAAP-unprofitable (OpM ~1%, EPS -0.08); market prices >=40% growth optionality DCF cannot capture, AV PT $64.87 v"
+ES,0.05,0.15,"Regulated utility; baseline mature_margin 0.279 was a gross-margin artifact giving FV $270, fixed to net-margin 0.15 -> $78, matching AV PT $72.17."
+FICO,0.13,0.45,Wide-moat credit-score monopoly with pricing power; decelerated growth to 13% and held 45% structural margin; my FV $1176 sits below AV PT $1527 as a conservati
+MTSI,0.13,0.16,"Analog/RF semis riding the datacenter/AI cycle (QRevG 22.5%, FwdPE 56); market prices >=40% growth optionality vs my decelerated $40, AV PT $398."
+EQR,0.04,0.3,"Coastal apartment REIT; DCF invalid (dcf_applicable=false) so valued on ~17.5x FFO/sh ~$3.9 -> $68, aligned with AV PT $70.83 vs broken DCF $31."
+NVT,0.12,0.17,"Electrical/datacenter-power enclosures with a QRevG spike of 53.5% on AI buildout; decelerated to 12% with 17% margin -> $74, well below AV PT $183 which prices"
+XYL,0.1,0.14,"Water-infrastructure secular grower (Evoqua-boosted); 10% growth and 14% margin give $117 vs AV PT $150.65, leaving modest upside."
+XPO,0.08,0.12,"LTL freight at a cyclical trough (OpM ~8% vs mid-cycle ~12%); normalized to mid-cycle gives $95 vs AV PT $224, reflecting disciplined cyclical caution below the"
+CINF,0.07,0.24,"P&C insurer; DCF invalid, valued on normalized EPS (~$11 ex investment gains) at ~15x -> $170, aligned with AV PT $181.5 vs inflated DCF $259."
+WRB,0.1,0.16,"High-quality specialty P&C with ~20% ROE; DCF invalid, ~15x EPS $4.59 -> $69, matching AV PT $67.38 vs DCF $149."
+PPG,0.04,0.14,"Coatings franchise with flat-to-low organic growth; 4% growth and 14% margin yield $120, an excellent match to AV PT $122.75."
+TEAM,0.18,0.25,"Atlassian is GAAP-unprofitable (OpM -2.7%) but FCF-rich; valued on ~25% FCF margin with decelerated 18% growth -> $184, above AV PT $143 reflecting durable clou"
+HUBB,0.06,0.18,"Electrical/utility-grid products with grid-modernization tailwinds; 6% growth and 18% margin give $333, conservative vs AV PT $550."
+CTSH,0.04,0.155,"IT-services compounder with eroding (negative-trend) moat; modest 4% growth and 15.5% margin -> $107, above AV PT $72 because the market over-discounts near-ter"
+FOX,0.03,0.105,"News/sports media; gross_margin=1.0 artifact inflated baseline to $283, fixed to ~10.5% net margin -> $51, matching AV PT $51.5."
+SMCI,0.12,0.05,"Thin-margin AI-server assembler (gross 14.5%, OpM ~6%); decelerated to 12% growth at 5% margin with Very High uncertainty for accounting/governance overhang -> "
+WTW,0.05,0.18,"Insurance broker; DCF invalid (gross_margin=1.0 inflated to $524), valued on ~16.5x recurring-fee EPS $17.02 -> $281, below AV PT $334."
+ILMN,0.05,0.22,Sequencing leader in a trough (OpM -19% on GRAIL writedowns); looked through to peak ~22% margin and 5% growth -> $62 vs AV PT $144 which prices a faster recove
+BG,0.03,0.035,"Ag-trading/oilseeds processor on razor-thin margins; normalized 3% growth and 3.5% margin give $129, just below AV PT $142."
+DOW,0.03,0.08,"Commodity chemicals at a deep trough (EPS -4, OpM ~0); mid-cycle ~8% margin -> $37, aligned with AV PT $42.5 vs trough-distorted baseline $11."
+RF,0.05,0.3,"Regional bank; DCF invalid (roic_median 1.149 artifact gave $125), valued on ~11.5x EPS $2.41 -> $28, matching AV PT $30.73."
+AWK,0.07,0.36,"Largest regulated water utility with predictable rate-base growth; gross_margin=1.0 artifact corrected to opm 0.36 -> $164, modestly above AV PT $135.73."
+STZ,0.04,0.27,Beer (Modelo/Corona) strong but wine/spirits and QRevG -11% weigh; normalized 4% growth at 27% margin -> $142 vs AV PT $176.
+ATI,0.08,0.12,Specialty/aero metals levered to the aerospace upcycle; mid-cycle 8% growth and 12% margin -> $52 vs AV PT $179.56 which prices a sustained aero supercycle.
+WSM,0.04,0.17,Williams-Sonoma home retail through a soft-housing trough; normalized 4% growth and 17% margin -> $174 vs AV PT $207.
+IHG,0.05,0.35,UK-listed asset-light hotel franchisor (ADR); cached series shows a >45% revenue 'collapse' (COVID/franchise reclassification) that the model flags out-of-model
+FCNCA,0.05,0.4,"Bank holding co (post-SVB acquisition); DCF invalid (raw FV $50,336 is garbage). Value on normalized earnings: AV EPS $173, fwd PE 12.8, AV PT $2,212 imply a fa"
+CRS,0.13,0.18,"Specialty aerospace alloys riding an up-cycle (opm TTM 22.8% vs cached trough 11.7%, QRev +11.6%); I normalize to mid-cycle ~18% margin / low-teens growth for $"
+FTAI,0.2,0.39,FTAI Aviation (engine aftermarket); the 2022 spin of FTAI Infrastructure creates a >45% revenue discontinuity the model flags out-of-model (raw FV $609 vs AV PT
+P,0.11,0.2,"Early-profitability software (gross 69%, opm_recent 2.7% SBC-suppressed, ROIC negative); I use a look-through FCF-style ~20% mature margin and decelerated 11% g"
+SYF,0.05,0.38,"Private-label consumer-credit lender; DCF invalid (raw FV $645). On normalized earnings (AV EPS $9.66, fwd PE 7.6, AV PT $89.4) it screens cheap, but the low mu"
+VRSK,0.07,0.44,"Verisk insurance data/analytics; durable 44% margins and ~7% recurring organic growth give $164, modestly below AV PT $220 which pays a premium multiple for the"
+KEY,0.05,0.37,"KeyCorp regional bank; DCF invalid (raw FV $110). Normalized earnings (AV EPS $1.63, fwd PE 12.2, AV PT $25, QRev +11.8% on NII recovery) point to roughly fair "
+BEP,0.07,0.2,Brookfield Renewable partnership; GAAP EPS negative and opm depressed (6.3%) make DCF awkward (it is an FFO/distribution story). On a normalized ~20% margin I g
+HPQ,0.02,0.07,"Per-share FV $80.81 is ~3.5x the real share price (~$24; AV PT $22.91, EPS $2.70, fwd PE 8.5): shares_outstanding is None, so the per-share FV divides equity_va"
+UTHR,0.12,0.45,"United Therapeutics (pulmonary-hypertension franchise); 48% operating margins and a deep PAH pipeline support $927 with decelerated 12% growth, well above AV PT"
+MTD,0.04,0.25,"Mettler-Toledo wide-moat lab/precision instruments; low-single-digit growth post-China-destock and ~25% margin give $952, in line with AV PT $1,328 only after a"
+LPLA,0.15,0.41,"LPL Financial advisor-platform; classified Financials so DCF invalid (raw FV $13,968). High-growth platform (QRev +35%) on AV EPS $10.92, fwd PE 11.7, AV PT $41"
+CHD,0.04,0.185,Church & Dwight staples compounder; low-single-digit growth and ~18.5% margin yield $69 vs AV PT $102.26 (26x fwd) - the market pays a premium staples multiple 
+DG,0.05,0.075,Dollar General; margins are in a trough (opm_recent 5.2% vs peak 8.8% on shrink/markdown pressure). Looking through to a partial margin recovery (~7.5%) gives $
+BCE,0.01,0.21,"BCE (Canadian telecom); declining revenue (-1% 5yr CAGR), heavy capex/leverage and a stretched payout warrant a High uncertainty override. Near-zero growth at ~"
+MKL,0.05,0.19,"Markel specialty insurer/holding company; DCF invalid (raw FV $3,662) and TTM op margin is distorted by investment marks. Value on book/P-B and earnings (AV EPS"
+PFG,0.04,0.13,"Principal Financial (insurer/asset manager); DCF invalid (raw FV $985). Normalized earnings (AV EPS $6.97, fwd PE 9.4, AV PT $101.5) imply roughly fair value wi"
+TROW,0.03,0.43,"T. Rowe Price asset manager; DCF invalid (raw FV $224). Wide brand moat but negative moat trend on active-to-passive outflows; AV EPS $9.32, fwd PE 10.8, AV PT "
+CPAY,0.12,0.43,"Corpay (FleetCor) payments network; model classifies it Financials so DCF invalid (raw FV $772), but it is really a wide-moat payments compounder (43% margins, "
+DRI,0.05,0.11,"Darden Restaurants (Olive Garden/LongHorn) scale-advantaged operator; ~11.5% margin and mid-single-digit unit+comp growth give $255, modestly above AV PT $225.5"
+ROL,0.1,0.19,"Rollins (Orkin pest control) wide-moat recurring-revenue compounder; steady ~10% growth and 19% margin give $43, below AV PT $62.94 because the Street pays a 38"
+PHM,0.02,0.13,"PulteGroup homebuilder at peak-cycle margins (opm 21%); I normalize to mid-cycle ~13% margin and low growth for $150, in line with AV PT $137.5 - close to fair "
+TW,0.18,0.42,"Tradeweb electronic fixed-income trading platform; classified Financials so DCF invalid (raw FV $238), but it is a network-effect growth name (46.5% margin, QRe"
+NI,0.05,0.22,"NiSource regulated gas/electric utility; ~5% rate-base growth and a normalized ~22% margin give $41, just below AV PT $51.36 - the model's raw 27% margin overst"
+LEN,0.025,0.095,"Homebuilder deep cyclical; QRev -13% confirms past the housing peak. Even at conservative mid-cycle inputs (g=2.5%, m=9.5%) the DCF holds $153, still ~1.7x AV P"
+FN,0.16,0.105,Fabrinet is an AI-datacom optical contract manufacturer; QRev +39% and fwd PE 12.8 vs trailing 53 signal a sharp earnings ramp the baseline's 3% growth missed. 
+CMS,0.065,0.21,"Regulated Michigan utility with a steady ~6-7% rate-base growth plan; raising g to 6.5% lifts FV to $71, just below AV PT $80 (fwd PE 18.6). Operating margin 19"
+WST,0.09,0.22,West Pharma is a wide-moat med-device/drug-packaging compounder; baseline's 3% growth understated the QRev +21% GLP-1 / high-value-product reacceleration. Lifti
+DGX,0.045,0.155,"Quest is a scale clinical-lab with steady M&A-fueled mid-single-digit growth (QRev +9.2%); FV $161 sits below AV PT $223 (fwd PE 18.7, EPS $9.05) - defensibly c"
+EXE,0.03,0.2,"Expand Energy: the >45% rev 'collapse' is a Chesapeake/Southwestern merger accounting artifact, not a real decline, so the name trips the out_of_model gate. AV "
+LEN.B,0.025,0.095,"Class-B shares of Lennar (same economics, fewer votes, typically trades at a discount to LEN). Same conservative cyclical override as LEN yields $153, again ~1."
+RL,0.06,0.16,"Ralph Lauren's elevation/AUR strategy is working (QRev +16.6%), but the baseline $606 over-margined the model at 22%; normalizing to a sustainable 16% operating"
+LH,0.045,0.125,"Labcorp post-COVID normalization: opm_recent 8.4% is a trough vs the 12.7% peak. Looking through to a normalized 12.5% margin gives $242, below AV PT $310 (fwd "
+AKAM,0.06,0.2,Akamai is shifting from declining legacy CDN to growing security/compute; opm_recent 13.5% is depressed vs the 19.6% peak. Recovering margin to 20% gives $79 - 
+CHRW,0.03,0.06,"C.H. Robinson is a freight-brokerage cyclical at a soft-market trough (rev CAGR negative, opm 3.8% vs 5.2% peak). Normalizing to a 6% mid-cycle margin gives $14"
+SNX,0.04,0.022,TD Synnex is a razor-thin (2% margin) IT distributor; the baseline $466 extrapolated too much growth. Decelerating to 4% and holding the structural 2.2% margin 
+AER,0.097,0.45,AerCap is the largest aircraft lessor - a spread/balance-sheet financial mis-tagged 'IT' with dcf_applicable=true. Operating-margin DCF overstates it ($377 base
+OMC,0.01,0.13,"Omnicom post-IPG merger: TTM EPS is -$0.37 on merger charges (QRev +69% is the IPG consolidation, not organic). Setting near-flat organic growth + a 13% normali"
+WWD,0.09,0.14,Woodward is an aerospace/industrial control-systems compounder riding the aero-recovery (QRev +23.4%); decelerating the 12% trailing growth to a sustainable 9% 
+ZS,0.22,0.25,Zscaler is GAAP-unprofitable cloud security; decelerated 28% to 22% and valued on ~22-25% FCF margin (GAAP suppressed by SBC). FV $223 sits just above AV PT $19
+VLTO,0.06,0.235,"Veralto (water quality/PQ spin) is a sticky razor-blade compounder; opm 0.232 matches AV TTM 0.238. FV $104 lands right at AV PT $108, baseline was essentially "
+EXPD,0.04,0.1,"Expeditors is an asset-light freight forwarder; the -45% revenue 'collapse' is freight-rate normalization, NOT a spin-off, so I lift the out-of-model flag and v"
+DLTR,0.04,0.08,Dollar Tree post-Family-Dollar divestiture; the -7% 5yr CAGR is the disposal artifact. Normalizing the continuing banner at 4% growth / 8% margin gives FV $91 v
+LYB,0.02,0.1,"LyondellBasell is a deep-trough commodity chemicals name (TTM opm 3.5%, EPS negative); I normalize to a ~10% mid-cycle margin rather than the trough. FV $146 si"
+EFX,0.08,0.21,Equifax credit-data oligopoly; margin recovering toward peak 0.23. FV $117 vs AV PT $223 — the market pays a premium multiple on mortgage-cycle recovery I won't
+STE,0.07,0.18,Steris (sterilization/infection-prevention) is a steady low-uncertainty compounder; opm 0.163 recovering to 0.18. FV $170 vs AV PT $257 — I'm conservative; the 
+CHTR,0.005,0.23,"Model is STRUCTURALLY broken here: cached gross_margin=1.0 inflates the FCF base and the per-share FV never subtracts Charter's ~$94B net debt, so raw my_fv flo"
+TSN,0.03,0.05,"Tyson is a protein cyclical near a margin trough (TTM opm 3.6%, peak 7.6%); I look through to a ~5% normalized margin. FV $73 sits right at AV PT $71 — well cal"
+OKTA,0.14,0.24,"Okta identity is decelerating (5yr 22% to ~14%, QRev +11%) and turning FCF-positive; valued on ~24% FCF margin. FV $99 vs AV PT $119 — defensible with margin of"
+STLA,0.03,0.05,Stellantis is a European auto ADR with a EUR-reporting / -45% revenue artifact and negative TTM EPS (-8.68) during a profit reset. Out-of-model; I anchor FV ~$1
+SOFI,0.2,0.2,"SoFi is a digital bank/lender (dcf_applicable=false) now GAAP-profitable (TTM opm 0.183, NI margin 0.148) but the market prices >40% optionality. DCF invalid; o"
+ROIV,,,"Roivant is a biotech holdco (TTM revenue ~$8M, opm -147x) whose value is cash + pipeline option value (post-asset-sale net cash and the immunology programs), no"
+INCY,0.06,0.25,Incyte's value hinges on Jakafi's looming patent cliff; I decelerate growth to 6% and use a 25% normalized margin (vs the baseline's 0.398 gross-driven figure t
+INSM,0.25,0.3,"Insmed is a pre-profit biopharma (TTM opm -0.66, NI margin -1.44) where the market prices brensocatib's bronchiectasis launch — option value a DCF can't capture"
+MKSI,0.06,0.18,MKS Instruments is a levered semicap/process name (sector mislabeled Health Care); TTM opm 0.161 vs peak 0.195. Mid-cycle 18% margin gives FV $144 vs AV PT $360
+RCI,0.03,0.2,"Rogers Communications is a Canadian telecom ADR with the same gross_margin=1.0 + un-netted-debt flaw as CHTR (heavy post-Shaw leverage), so raw my_fv is unrelia"
+LUV,0.04,0.06,"Southwest is an airline cyclical; the gross=1.0 artifact and out-of-model rev-collapse flag are noise. Using a 6% mid-cycle margin gives FV $36, in line with AV"
+IOT,0.24,0.2,Samsara (connected-operations IoT) grows ~30% with thin GAAP margins; decelerated to 24% on a ~20% target FCF margin. FV $21 is well below AV PT $45 — the marke
+RS,0.03,0.09,"Reliance (metals service-center distributor) is a steel-price cyclical; opm 0.084 vs peak 0.092, so a ~9% through-cycle margin is appropriate. FV $275 vs AV PT "
+ULTA,0.05,0.135,Ulta Beauty is a wide-moat specialty-beauty retailer maturing to mid-single-digit growth at a ~13.5% margin (from a peak). FV $627 sits essentially on AV PT $63
+PAAS,0.12,0.28,"Pan American Silver is a silver/gold miner (sector mislabeled Unknown); precious-metal prices are elevated (TTM opm 0.481) so I use a ~28% mid-cycle margin, not"
+NXT,0.1,0.15,"Nextracker (solar tracker hardware, mislabeled Health Care) is a clean-energy cyclical now decelerating (QRev -4.7%); I cut growth to 10% and use a 15% margin. "
+BURL,0.08,0.09,Burlington is an off-price retailer with a positive-trend margin story (opm 0.066 toward 0.09 as the model matures); 8% growth on store expansion. FV $318 vs AV
+BRO,0.12,0.42,Brown & Brown is a wide-moat insurance broker (dcf_applicable=false); the baseline $530 is a gross_margin=1.0 + capped-0.42-margin artifact. On a broker P/E fra
+RBA,0.12,0.18,RB Global (Ritchie Bros + IAA) is an auction-marketplace network; I decelerate the inflated 25% trailing CAGR (IAA-merger optics) to ~12% with margin expanding 
+DKS,0.04,0.095,"Dick's is a scaled sporting-goods leader; even decelerating to 4% growth and holding ~9.5% op margin gives FV $288 vs price/AV PT ~$249.55, because the stock tr"
+ENTG,0.13,0.2,"Entegris (semiconductor materials/filtration) is at a cyclical trough (3y rev CAGR -4.8%, margins below peak); normalizing growth to 13% and margin to peak 20% "
+AA,0.03,0.08,"Alcoa is a no-moat aluminum/alumina commodity producer; using mid-cycle ~8% op margin (recent only 1.3%, peak 5.5% but alumina prices spiked) gives FV $42 vs pr"
+RBC,0.1,0.225,"RBC Bearings is a high-margin aerospace/industrial bearings maker; decelerating the 15-19% post-Dodge-acquisition growth to a sustainable ~10% gives FV $206, fa"
+IFF,0.03,0.13,Intl Flavors & Fragrances is mid-turnaround (recent op margin -3.5% from impairments; I normalize to ~13% peak); even so FV is only $36 vs price $73 and AV PT $
+USFD,0.05,0.035,US Foods is a thin-margin (2-3% op) foodservice distributor; modeling modest margin expansion to 3.5% on 5% growth gives FV $56 vs price $87 and AV PT $107 (fwd
+ALB,0.05,0.18,"Albemarle is a lithium producer in a violent price trough (recent op margin -7%, currently GAAP-loss); using mid-cycle ~18% margin and 5% growth gives FV $80 vs"
+APG,0.1,0.11,"APi Group (safety/specialty services, mis-tagged IT) is a roll-up compounder; modeling 10% growth with margin expansion to ~11% gives FV $26 vs price $42 and AV"
+ROKU,0.12,0.1,"Decelerated 15%+ trailing growth to a sustainable 12% and set a FCF-based 10% mature margin (GAAP op margin still negative, -5%); even so FV $59 sits well under"
+CX,0.03,0.11,Cemex ADR per-share unit artifact: model values per ordinary CPO so FV prints $0.28 vs an ADR price ~$8 / $14.31 AV PT (ADR = 10 CPOs); the operating margin and
+MGA,0.03,0.055,"Magna is an auto-parts cyclical (model tagged sector Unknown); set mid-cycle 3% growth and a normalized 5.5% margin, giving FV $85 vs the $69.56 AV PT and ~$45 "
+BEKE,0.03,0.04,KE Holdings is a China property-services ADR with a 36% trailing revenue collapse (model already flagged spin-off/restructuring) and -19% latest YoY; the DCF ba
+INVH,0.072,0.272,Invitation Homes is a single-family-rental REIT (dcf_applicable=false); the per-share DCF prints $4.95 vs a ~$33 price / $31.57 AV PT and should be valued on FF
+IP,0.03,0.07,"International Paper is a cyclical containerboard maker in a loss-making trough (TTM EPS -$5.19, profit margin -13.8%); normalized to mid-cycle 7% margin and 3% "
+DOCN,0.18,0.2,DigitalOcean trades on AI/cloud growth optionality (model flags it prices 40%+ growth); even at 18% growth and a 20% FCF margin FV is $30 vs a ~$170 price / $17
+LII,0.041,0.194,Lennox is a wide-moat HVAC compounder; baseline FV $566 lands almost exactly on the $570.07 AV PT with a 19.4% margin and 4% growth that match its 43% median RO
+GIS,0.03,0.168,"General Mills is a stable staples compounder; held 3% growth and the real ~16.8% op margin and tightened uncertainty to Low, giving FV $86 vs a depressed ~$55 p"
+WY,0.03,0.15,Weyerhaeuser is a timberland REIT (dcf_applicable=false); the operating-margin DCF prints $18 vs ~$28 price / $31.18 AV PT and should be valued on NAV/timber-as
+AMCR,0.03,0.092,"Amcor is a stable packaging compounder, but FV $37.63 is a per-share artifact vs a ~$10 price (the $48.21 AV PT and the 77% QoQ rev jump are both Berry-merger/d"
+BR,0.077,0.156,"Broadridge is a wide-moat, recurring-revenue fintech-services compounder; baseline FV $217 lands right on the $206.5 AV PT with a 15.6% margin and 7.7% growth t"
+RGLD,0.1,0.55,"Royal Gold is a gold royalty/streaming company (dcf_applicable=false); its value is reserve/metal-price optionality, not a steady-margin DCF — even at a 55% mar"
+WES,0.04,0.39,Western Midstream is a fee-based pipeline LP; even at conservative 4% growth and the real ~39% margin FV $79 is ~2x the ~$38 unit price / $44.73 AV PT because t
+CF,0.03,0.22,"CF Industries is a nitrogen-fertilizer cyclical; pulled the margin off the ~32% recent/peak to a mid-cycle 22% and 3% growth, giving FV $99 vs the $127.63 AV PT"
+FLUT,0.15,0.18,"Flutter's 88%/155% trailing revenue CAGR is the 2023-24 Paddy Power->US-primary relisting + FanDuel consolidation, not organic growth, so the per-share DCF base"
+TTMI,0.06,0.06,TTM Technologies is a cyclical PCB maker; the model flags FV<18% of price and FV $17 vs a ~$170 price / $209 AV PT — the cached financials badly understate its 
+WCC,0.04,0.055,"WESCO is a thin-margin electrical/industrial distributor; held the real ~5.5% margin and 4% mid-cycle growth, FV $241 vs ~$200 price and $375.1 AV PT, so underv"
+EWBC,0.184,0.438,East West Bancorp is a balance-sheet bank (dcf_applicable=false); the DCF leaks a $699 FV vs a ~$95 price / $137.19 AV PT because it runs on net-interest income
+ITT,0.07,0.174,ITT is a diversified industrial compounder; the 7% growth / 17.4% margin baseline gives FV $171 vs the $244.77 AV PT and ~$180 price — defensible and roughly fa
+HST,0.153,0.219,Host Hotels is a lodging REIT (dcf_applicable=false) flagged for a revenue-collapse discontinuity (COVID base); the DCF prints $47 vs a ~$17 price / $23.64 AV P
+BWXT,0.1,0.14,BWX Technologies is a sole-source naval-nuclear and SMR-components maker; at 10% growth and a 14% margin (between recent 12.2% and peak 15.3%) FV is $103 vs a ~
+NWS,0.03,0.085,"News Corp's cached gross_margin=1.0 is a missing-COGS artifact; replaced the 42% default margin with the real ~8.5% op margin (opm_recent 0.081), giving FV $16 "
+CDW,0.03,0.079,"CDW is a wide-moat IT-hardware/services reseller; baseline FV $210 with a 7.9% margin and 3% growth and a 17% ROIC is above the $147.3 AV PT and ~$135 price, so"
+SN,0.12,0.117,SharkNinja is a fast-growing consumer-products innovator (model mis-tagged IT); decelerated the 22% trailing growth to a sustainable 12% at the real 11.7% margi
+ZBH,0.05,0.18,"Zimmer Biomet, mature ortho-implant maker (~5% growth, fwd PE 10.5); baseline $171 used a 30% margin the company has never earned, so I set mature_margin to the"
+CDE,0.08,0.28,Coeur Mining is a gold/silver miner whose value is dominated by spot-metal-price optionality and reserve life; the DCF floors at ~$6-16 regardless of margin (lo
+SSNC,0.07,0.25,"SS&C is a sticky financial-services-software/fund-admin compounder (~7% organic + bolt-ons, ~25% op margin); at conservative inputs FV $75 sits between the chea"
+NVR,0.03,0.13,"NVR is the capital-light, land-option homebuilder (wide moat, 56% ROIC); baseline $12,640 extrapolated near-peak 19% margin, so I used a mid-cycle 13% margin an"
+TLN,0.08,0.2,Talen Energy is a post-bankruptcy nuclear/IPP whose value is driven by power-demand/datacenter PPA optionality (Amazon deal) and surging PJM capacity prices (Qt
+GH,0.18,0.15,"Guardant Health is a cash-burning liquid-biopsy hypergrowth name (OpMargin -40%, QtrRev +48%, AV PT $137); a DCF forced onto a normalized 15% margin yields only"
+WPC,0.04,,"W.P. Carey is a diversified net-lease REIT (mislabeled sector=Financials); dcf_applicable=false and the $24.96 model FV is a DCF-leak artifact, so I value on AF"
+SITM,0.4,,"SiTime (MEMS timing) is a re-accelerating hypergrowth name (QtrRev +88%, fwd PE 95, AV PT $827.78) flagged out_of_model by the post-downturn revenue swing and >"
+PR,0.05,0.3,"Permian Resources is a Delaware-basin E&P (gross_margin=1.0 artifact, baseline $196); on a mid-cycle 30% margin and 5% growth FV is $24.77, essentially in line "
+NBIX,0.14,0.3,"Neurocrine (Ingrezza-led CNS specialty pharma); baseline $672 ran 25% growth on a 98.8% gross-margin artifact, so I decelerated to 14% and used a realistic 30% "
+MAA,0.04,,Mid-America Apartment is a Sun Belt multifamily REIT; dcf_applicable=false so the $96.55 DCF FV is suppressed and I value on FFO - AV PT $140.46 vs a ~$155 pric
+KIM,0.05,,Kimco is a grocery-anchored open-air shopping-center REIT; dcf_applicable=false so the $34.56 DCF FV is suppressed and I value on FFO - AV PT $25.67 vs a ~$22 p
+VNOM,0.2,,Viper Energy (Diamondback mineral/royalty vehicle) errors out of the model with <3y usable history after recent drop-down/acquisitions (QtrRev +109%); it is a r
+BEN,0.03,,"Franklin Resources is an AUM-driven traditional asset manager in secular outflows; dcf_applicable=false so the $85.59 DCF FV is a leak artifact, valued on norma"
+LOGI,0.04,0.14,"Logitech is a mature PC-peripherals maker (post-pandemic normalization, ~4% growth, 14% op margin, high ROIC); FV $92 sits modestly below AV PT $113.50, so roug"
+AMKR,0.05,0.08,"Amkor is an OSAT (semi assembly/test), a thin-margin (8% op), capital-intensive cyclical; my mid-cycle FV $33 is well below AV PT $75.50, which prices an advanc"
+PAA,0.03,,Plains All American is a crude-pipeline LP tagged dcf_applicable=true; the thin pass-through op margin makes the GAAP-DCF FV $26.31 unreliable (LPs distribute D
+IEX,0.06,0.22,"IDEX is a high-quality niche fluid/pump industrial roll-up (22% margin, ROIC ~15%); FV $165 sits below AV PT $238, so roughly fairly-to-modestly-undervalued wit"
+OVV,0.02,0.18,"Ovintiv is a multi-basin oil/gas E&P (declining trailing rev, peak 26% margin); on a mid-cycle 18% margin and ~flat growth FV is $76, essentially in line with A"
+TXT,0.05,0.09,"Textron is a diversified aero/defense industrial (Cessna/Bell, thin ~9% margin); FV $123 is modestly above AV PT $103.45 on 5% growth, so roughly fair with bizj"
+GEN,0.06,0.3,"Gen Digital (Norton/Avast/LifeLock consumer cyber) is a mature low-growth cash machine, not a 15%+ grower - the 27% QtrRev is the MoneyLion/Avast deals; on 6% o"
+TPG,0.1,,"TPG is an alternative-asset manager (PE/credit, fee + carry); dcf_applicable=false so the $511.83 DCF FV is a gross leak artifact, valued on fee-related-earning"
+PTC,0.1,0.33,"PTC is a CAD/PLM industrial-software compounder on recurring ARR (~33% margin); I decelerated to 10% growth giving FV $155, modestly below AV PT $182.74 - rough"
+SUI,0.05,,"Sun Communities is a manufactured-housing/RV/marina REIT (mislabeled sector=Financials); dcf_applicable=false so the $356.06 DCF FV is a leak artifact, valued o"
+NDSN,0.05,0.26,"Nordson is a wide-moat-ish precision-dispensing industrial (26% margin, recurring consumables); FV $195 is well below AV PT $319, so the conservative 5% growth "
+RMBS,0.223,0.329,Rambus IP/memory-interface licensing compounds ~22% but earnings are lumpy and royalty-renewal dependent; baseline DCF $90 sits well below AV PT $145 (= current
+CG,0.06,0.42,Carlyle is an alternative asset manager whose GAAP revenue swings on mark-to-market of fund investments (model saw a >45% 'collapse' = artifact); dcf_applicable
+LDOS,0.056,0.107,"Leidos is a defense/government IT prime with sticky multi-year contracts; baseline DCF $178.62 lands almost exactly on AV PT $183.27, a clean match at ~5.6% gro"
+TSCO,0.03,0.1,"Tractor Supply (post-split) is a wide-moat rural retailer but growth has decelerated to ~3% with a Negative moat trend; decelerating g to 3% gives FV $51.46, a "
+WMG,0.04,0.13,"Warner Music's streaming-royalty growth is maturing; baseline $61 overstates it, so decelerating g to 4% and lifting uncertainty to High (artist renegotiation /"
+NLY,,,Annaly is a levered agency-mortgage REIT; the DCF returns a nonsensical negative FV ($-88.7) because spread/book economics aren't FCFF-modelable. Value on price
+KSPI,0.25,0.4,"Kaspi.kz is a Kazakhstan super-app/fintech ADR with <3y model history and KZT-denominated financials (RevenueTTM 3.64T KZT); geopolitical, currency and disclosu"
+GNRC,0.08,0.16,"Generac's residential-standby demand is recovering (QrevYoY +12%) but margins remain below the 2021 peak; normalizing g to 8% / margin to 16% yields $166.83, fa"
+LAMR,0.05,0.308,"Lamar Advertising is an outdoor-billboard REIT (dcf_applicable=false); value on AFFO multiple, not FCFF. Baseline informational FV $139 brackets AV PT $155.6."
+WSO,0.03,0.099,"Watsco is a wide-moat HVAC distributor but revenue went flat (3y CAGR -0.3%) post-COVID pull-forward; baseline $345.17 stays below AV PT $424.67, consistent wit"
+OWL,0.2,0.42,Blue Owl is a fast-growing alternative asset manager (private credit/GP stakes) with dcf_applicable=false; value on fee-related-earnings. The AV PT of $12.93 lo
+PFGC,0.1,0.02,"Performance Food Group is a thin-margin (~1-2% op) food distributor scaling via M&A; baseline $129.98 sits just above AV PT $119.42 — a clean, defensible match "
+XPEV,0.25,0.02,"XPeng is a GAAP-unprofitable Chinese EV ADR (op margin -15%, model FV $1.77) where the market prices >=40% growth optionality; out-of-model on extreme optionali"
+NVMI,0.2,0.28,"Nova (NVMI) is a wide-moat semiconductor metrology leader compounding ~20% with 28% margins; baseline g=0.245 overshot to $802, while decelerating to a sustaina"
+RBRK,0.3,0.2,"Rubrik is a recently-IPO'd cyber-resilience SaaS (<3y model history, GAAP op margin -14%, QrevYoY +39%); GAAP losses and short history put it out-of-model. AV P"
+BBY,-0.02,0.035,Best Buy is a shrinking-revenue electronics retailer; even modeling -2% growth and a thin 3.5% normalized margin (and looking through the high ROIC artifact) gi
+YUMC,0.042,0.103,"Yum China (KFC/Pizza Hut operator) is a wide-moat unit-growth story; baseline FV $61.49 matches AV PT $61.17 almost exactly, so the model is well-calibrated des"
+DECK,0.13,0.231,"Deckers (HOKA/UGG) is a wide-moat ~13% grower at 23% margins, but the baseline per-share FV $324.96 is on a pre-6:1-split share basis (~3x the ~$108 post-split "
+JAZZ,0.05,0.382,"Jazz Pharma carries patent-cliff and litigation exposure on its sleep/oncology franchises; lifting uncertainty to High and decelerating g to 5% gives $254.68, a"
+CLH,0.096,0.113,Clean Harbors is a hazardous-waste/environmental-services operator with a narrow moat from permitted incinerator capacity; baseline $239.81 sits below AV PT $32
+RTO,0.109,0.42,"Rentokil Initial is a UK-listed pest-control consolidator (ADR); baseline FV $25.99 brackets AV PT $36.10, and the gross_margin=1.0 artifact left the model's ma"
+AGI,0.15,0.38,Alamos Gold is a price-taking gold miner riding record bullion (opm 0.417 = peak); using a still-elevated but normalized 38% margin and 15% production+price gro
+BWA,0.031,0.107,"BorgWarner is an auto-supplier navigating the ICE-to-EV transition (Negative moat trend); baseline $85.09 exceeds AV PT $71.33, with the model using a mid-cycle"
+NWSA,0.04,0.15,"News Corp's gross_margin=1.0 artifact inflated baseline to $67; using the real consolidated margin (~15%, with Dow Jones/REA driving) and 4% growth gives $26.80"
+MLI,0.058,0.18,"Mueller Industries (copper/brass products) carries an elevated TTM margin (0.213) on high copper prices; the model already normalizes to ~18% mid-cycle, giving "
+MOD,0.1,0.11,Modine thermal management is a data-center cooling beneficiary; baseline extrapolated 12.9% growth with no scale decel. Decelerating to 10% with a realistic 11%
+APTV,0.04,0.1,"Aptiv is an auto-electrical/ADAS supplier in a cyclical trough (3yr rev CAGR 0.9%, TTM PM 1.8% depressed by charges); normalizing to 4% growth and a 10% mid-cyc"
+NTNX,0.13,0.25,Nutanix hybrid-cloud subscription software has ~79% gross margin but near-zero GAAP op margin (SBC-suppressed); valuing on a ~25% FCF margin at 13% growth gives
+J,0.04,0.065,"Jacobs Solutions just spun off Amentum, so TTM op margin (-0.9%) and QRev (+27%) are distorted by the discontinuity; normalizing the continuing engineering-cons"
+LECO,0.04,0.17,"Lincoln Electric is a wide-moat welding leader; at a steady 4% growth and its actual 17% operating margin, my_fv is $229.10 vs the AV PT of $294.11 (fwd PE 24 v"
+IESC,0.12,0.1,"IES Holdings is an electrical-infrastructure contractor riding the data-center/electrification boom; baseline extrapolated 20.7% growth (raw $967), which is uns"
+SGI,0.1,0.12,"Decelerating the 3yr 23% growth to a sustainable 10% with the actual 12% margin gives $68.40 vs the AV PT of $97.25 (fwd PE 22.5 vs trailing 27, QRev +12.3%); b"
+WSO.B,0.05,0.1,"Watsco class-B is an illiquid share class of the wide-moat HVAC distributor; at 5% growth and its real 10% operating margin, my_fv is $399.77. No live AV overvi"
+CHKP,0.06,0.4,"Check Point is a wide-moat, highly profitable cybersecurity firm (88% gross, ~28-44% op margin); at 6% growth and a 40% mature margin, my_fv is $252.76, well ab"
+GIB,0.05,0.155,"CGI Inc is a disciplined IT-services consolidator with steady ~15.5% margins; at 5% growth my_fv is $123.99, above the AV PT of $74.10 (fwd PE 9.7 vs trailing 1"
+BALL,0.03,0.09,Ball Corp is a cyclical aluminum-packaging maker with thin ~9% margins and flat-to-negative volume history (5yr rev CAGR -1.2%); at mid-cycle 3% growth and a 9%
+SMTC,0.15,0.18,"Semtech is in an analog/optical-DSP recovery: TTM EPS is negative and op margin only 3-9%, yet the AV PT is $204.83 (fwd PE 58.8, QRev +15.9%) pricing a CopperE"
+ARMK,0.05,0.045,"Aramark is a thin-margin (~4.5% op) food/facilities-services operator; at 5% growth its DCF is $21.04, well below the AV PT of $56 (fwd PE 21 vs trailing 39, QR"
+DY,0.1,0.075,"Dycom is a fiber/telecom-construction contractor in a fiber-build boom (QRev +56.1%); baseline 15.3% growth (raw $440) is unsustainable, so I decelerate to 10% "
+MAS,0.03,0.17,"Masco is a wide-moat building-products company (Behr, Delta) with a high ~41% ROIC and 17% margin but flat revenue (5yr CAGR -2.5%); at 3% growth my_fv is $105."
+CSL,0.05,0.2,Carlisle is a roofing/building-products compounder with strong ~20% margins; at 5% growth my_fv is $299.82 vs the AV PT of $410.14 (fwd PE 16.5 vs trailing 19.7
+THC,0.02,0.12,Tenet Healthcare's baseline $1708 was a gross_margin=1.0 data artifact applying a 42% margin to a hospital/ASC operator; correcting to its real ~12-13% op margi
+TIGO,0.03,0.22,"Millicom is a LatAm telecom ADR; decelerated growth to 3% with a 22% margin and High-uncertainty (FX/political) override brings FV to $66 vs AV PT $83.2, but cu"
+CSGP,0.12,0.3,CoStar's near-zero current op margin is depressed by heavy Homes.com marketing spend; normalizing to a 30% mature margin and 12% decelerated growth yields $45.9
+JLL,0.07,0.06,Jones Lang LaSalle's gross_margin=1.0 artifact massively over-scales the per-share DCF ($720+ even at a thin 6% margin) vs AV PT $387.6; the brokerage is better
+GPC,0.04,0.07,"Genuine Parts is a stable auto/industrial-parts distributor; normalizing a 7% op margin lifts FV to $243.68, but that sits well above AV PT $132.43 (12.7x fwd P"
+TRU,0.08,0.2,"TransUnion's gross_margin=1.0 artifact inflated the baseline to $205; correcting to a structural 20% op margin (opm_recent 0.16) with 8% growth yields $71.80, j"
+RRX,0.06,0.16,"Regal Rexnord's baseline understated margin at 11%; using a more realistic post-synergy 16% GAAP op margin lifts FV to $149.86, conservatively below AV PT $251."
+SANM,0.05,0.05,"Sanmina is a thin-margin EMS contract manufacturer; even with a generous 5% mature margin FV is $131.78, below the aggressive AV PT $223.75 that extrapolates a "
+CNH,0.03,0.1,"CNH Industrial (ag/construction equipment) shows broken cached financials (rev_cagr -16%, FV negative even at mid-cycle 10% margin), tripping the OOM gate; AV P"
+EXEL,0.1,0.35,"Exelixis is a profitable oncology franchise (cabozantinib); decelerating growth to 10% with a 35% mature margin and High-uncertainty override gives $59.20, mode"
+JHX,0.07,0.18,"James Hardie is a fiber-cement building-products ADR; at 7% growth and 18% margin the model lands at $14.91, well below AV PT $28.18, but ADR/AZN-Spec disclosur"
+COO,0.08,0.25,Cooper Companies' negative TTM op margin is a one-off artifact; normalizing to a structural 25% medtech margin (contact lens + fertility) with 8% growth yields 
+ALLY,0.045,0.2,"Auto-focused digital bank; DCF invalid (baseline $297 is a financial-sector margin artifact). On normalized ~9x EPS $4.12 plus credit normalization, fair value "
+TFII,0.03,0.107,"LTL/trucking roll-up; baseline 3% growth and ~11% mid-cycle margin give $105, essentially at price ~$108 (AV PT $156 prices a freight recovery I won't yet under"
+HRL,0.025,0.1,"Protein/packaged-food staple in a low-growth rut; trimmed baseline to 2.5% growth and 10% margin -> $28, just above price $23.64 and AV PT $26.5."
+MEDP,0.115,0.21,"Wide-moat full-service CRO; decelerated the 22% trailing CAGR to ~11.5% and held ~21% margin, giving $552 vs price $458 and AV PT $443 (QoQ rev +26.5% still str"
+LULU,0.04,0.18,"Baseline $764 assumed 12% growth; the brand has decelerated hard (ForwardPE 9.1, QoQ rev +4.3%). Cut to 4% growth / 18% margin with High uncertainty -> $204, we"
+FUTU,,,"Chinese online brokerage ADR; model flags a >45% revenue collapse (a reporting-unit/currency artifact). AV shows a healthy franchise: 45% profit margin, QoQ rev"
+APA,0.02,0.22,"E&P oil/gas; replaced the 39.6% peak margin with a ~22% mid-cycle margin and 2% growth -> $44, right at AV PT $43 and above price $37.66."
+TOL,0.03,0.12,"Luxury homebuilder at a cyclical peak (opm 17.3% > prior cycle); normalized to ~12% mid-cycle margin and 3% growth -> $119, just below price $137 (AV PT $164 pr"
+MKC.V,0.03,0.165,Non-voting share class of McCormick; identical fundamentals. Baseline 3% growth / 16.5% margin gives $52.82 vs MKC price $47.6 and AV PT $61.3 - defensible for 
+DINO,0.02,0.05,"HF Sinclair refiner/marketer; mid-cycle ~5% margin (between 3.5% trough and 6.9% peak) and 2% growth -> $70, essentially at price $72.39 and AV PT $74."
+SOLS,,,"Solstice Advanced Materials - 2025 spinoff from Honeywell; <3y standalone history so DCF unavailable. AV shows ~10.6% growth, 18.2% op margin, PT $90.67 (Traili"
+TYL,0.1,0.18,Sticky government/public-sector SaaS; held 10% growth and modeled margin expansion to 18% -> $228. Far below price $304 and AV PT $445 - the market pays a premi
+GFL,,,GFL Environmental (Canadian waste) is mid-deleveraging after selling its environmental-services unit; model returns a negative FV and flags optionality (Trailin
+KNX,0.05,0.12,"Truckload carrier at a deep freight trough (opm 3.3%, profit margin 0.45%). Even normalizing to a 12% mid-cycle margin (its prior-peak) and 5% growth gives only"
+FNF,0.032,0.16,"Title insurer (+F&G annuities); DCF invalid (baseline $139 is a margin artifact). On normalized ~10x mid-cycle EPS plus the F&G stake, fair value ~$55, near pri"
+AIZ,0.065,0.087,"Specialty insurer (lender-placed, mobile/extended warranty); DCF invalid (baseline $1699 is a financial-margin artifact). On normalized ~11x EPS $19.1 -> ~$270,"
+U,0.1,0.12,Unity is GAAP-deeply-unprofitable (op margin -38%); the model's most generous output is ~$14 and an FCF-margin scenario (10% growth/12%) gives only ~$6 under a 
+ENLT,0.12,0.4,"Enlight is a fast-growing renewable IPP (rev CAGR ~49%); decelerated to 12% mature growth and held the ~40% EBIT margin -> $32, near price ~$30 (AV PT $82 capit"
+MKC,0.03,0.165,McCormick flavor/spice staple; baseline 3% growth and 16.5% margin give $52.91 vs price $47.6 and AV PT $61.3 - a defensible wide-distribution compounder valuat
+HUT,,,"Hut 8 is a bitcoin miner / HPC-pivot with <3y history and op margin -522%; value is driven by BTC price and balance-sheet holdings, not DCF. AV PT $119 vs deepl"
+TRMB,0.07,0.2,Trimble's positioning/geospatial SaaS transition; cached history shows divestiture-driven revenue declines that suppress the model. Even with 7% growth and 20% 
+PEN,0.16,0.22,Penumbra (neuro/peripheral thrombectomy) grows ~15-17% but current op margin is only ~7-10%; crediting a scale-up to 22% margin and 16% growth gives $243 vs pri
+ONTO,0.14,0.25,"Onto is semiconductor metrology/inspection (mis-tagged Health Care in the feed). Even with an above-trend 14% growth and a 25% margin scale-up, the DCF gives $1"
+ELS,0.03,0.375,"Equity LifeStyle (manufactured housing / RV / marina REIT); DCF invalid (baseline $37 ignores FFO). On a ~22-23x AFFO multiple for a high-quality, low-cyclicali"
+PNW,0.035,0.2,"Pinnacle West (regulated Arizona utility, APS); cut the 8% baseline growth to a regulated ~3.5% rate-base pace at ~20% margin -> $115, in line with price $101 a"
+SUN,0.05,0.037,"Fuel-distribution / midstream operator on a thin ~3.7% pass-through margin; baseline DCF $70.94 ties almost exactly to AV analyst PT $74.12, so no override need"
+NYT,0.08,0.136,"Wide-moat digital subscription compounder; model margin (13.6% = real op margin) and 8% growth are defensible, leaving my $59 conservative vs the street's $84.8"
+SAIA,0.085,0.135,"gross_margin 0.923 artifact inflated mature_margin to 0.388 (baseline FV $777); reset to the real ~13.5% LTL operating margin -> $295, far below price $480.68 a"
+AUR,,,"Aurora Innovation is pre-revenue autonomous-trucking (rev CAGR -81%, op margin -27x, no AV coverage); the DCF base is meaningless and the model self-flags rev-c"
+DKNG,0.17,,"Online-gambling hypergrowth just crossing into profitability (GAAP op margin 0.35%, EPS $0.09); model FV $3.17 is a GAAP-loss artifact and the name self-flags >"
+ONON,0.2,0.14,"On Holding (sector cached Unknown; really Consumer Discretionary footwear) decelerated from ~48% to a sustainable ~20% with the real ~14% op margin -> $43.43, m"
+GL,0.044,0.252,"Globe Life is a life/health insurer (dcf_applicable=false); the operating-margin DCF leaks a $291 FV vs price $157.13, so suppress my_fv and value on P/E (fwd P"
+VICR,,,"Vicor power-components FV $26.52 is <18% of price $274.97 (AV PT $323.75, fwd PE 88); the market prices AI-datacenter power-delivery optionality the trailing DC"
+GGG,0.03,0.279,"Graco is a wide-moat, high-ROIC (31.7%) specialty-machinery compounder; baseline margin 27.9% = real op margin, so $71.67 is defensible and conservative vs AV P"
+DVA,0.025,0.12,DaVita dialysis: baseline $356 overshot on a rich terminal; trimmed to ~2.5% growth and a normalized ~12% margin with High uncertainty (GLP-1 volume risk + mana
+DRS,0.1,0.095,Leonardo DRS (cached sector Health Care -> really Industrials Aerospace & Defense); at its real ~9.5% op margin and 10% backlog-driven growth the DCF gives $25.
+IONS,,,"Ionis is a near-breakeven antisense-platform biotech (gross 0.984 artifact, op margin -45%, QRev +87%); even at a normalized 24% margin the DCF holds ~$24 vs AV"
+RNR,0.05,0.261,"RenaissanceRe is a property-cat reinsurer (dcf_applicable=false); the DCF on premium float leaks $2136 vs price $282.11, so suppress and value on P/B x ROE / ch"
+DT,0.17,0.205,"Dynatrace observability SaaS: GAAP op margin 10.6% is SBC-suppressed; using a structural ~20.5% FCF-style margin and ~17% decelerated growth gives $43.51, essen"
+CRBG,0.03,0.179,"Corebridge Financial is a life/annuity insurer (dcf_applicable=false); DCF leaks $226 on spread/AUM income, so suppress and value on cheap P/E (fwd 4.63) and AV"
+BF.A,0.03,0.2,"Brown-Forman (class A) baseline $53 used a peak-cycle 28.7% margin; the brand is in a real demand slump (3y rev CAGR -3%), so a through-cycle ~20% margin and 3%"
+SWK,0.03,0.111,"Stanley Black & Decker margin recovery story; the model uses peak op margin 11.1% (vs trough opm_recent 4.1%) and lands $154.59, far above AV PT $90.54 -> I vie"
+BNT,0.05,0.144,"Cached as a diversified insurer (dcf_applicable=false); the DCF leaks $930 vs price ~$44 on premium/spread income the model can't value, and AV PT is None. Supp"
+MGM,,,MGM Resorts baseline FV $130.9 is a COVID rev-collapse + buyback share-shrink artifact (self-flagged rev collapsed >45%); normalized view ~$45-50 (op margin 6.9
+IVZ,0.03,0.2,"Invesco is a fee-based asset manager (dcf_applicable=false); gross_margin=1.0 artifact + AUM-driven economics make the $53.5 DCF unreliable, so value on P/E (fw"
+ALGN,0.04,0.2,"Align Technology (Invisalign): growth has stalled (5y rev CAGR 0.5%), so a modest 4% recovery and a normalized 20% op margin (between trough 15.2% and peak 23.5"
+BF.B,0.03,0.2,Brown-Forman class B (mirror of BF.A); same through-cycle normalization off the peak 28.7% margin to ~20% with 3% growth -> $31.10 vs AV PT $27.68.
+PINS,0.12,0.2,"Pinterest GAAP op margin 4.9% is SBC-suppressed; a structural ~20% FCF margin and 12% growth give $28.42, between price $21.99 and AV PT $27.72 (baseline $51.75"
+COKE,0.057,0.13,"Coca-Cola Consolidated (largest US bottler), price $178.81; baseline ~13% bottling op margin and ~5.7% growth give $168.67, fairly valued. AV PT of $1440 is a s"
+AXSM,0.25,0.35,"Axsome is an early-commercial CNS biotech (Auvelity/Sunosi ramping, QRev +57%, GAAP loss); decelerated 25% growth to a mature ~35% pharma margin gives $177.56, "
+BJ,0.05,0.038,"Warehouse club with structurally thin ~3.8% operating margin (correct, not artifact) and ~5% unit/membership growth; FV $118.6 sits modestly above the $101 AV P"
+JEF,0.11,0.23,Jefferies is an operating investment bank; DCF invalid (dcf_applicable=false) and the baseline 'revenue collapsed >45%' out-of-model flag is a broker gross-vs-n
+CLX,0.03,0.155,Wide-moat staples with flat top line; normalized margin 15.5% (between depressed recent 13% and AV TTM 17%) gives FV $119.6 vs AV PT $105.3.
+GWRE,0.15,0.22,"Guidewire's cloud (ARR) transition is barely GAAP-profitable; even a generous in-model run (15% growth, 22% mature SaaS margin, High uncertainty) yields only $6"
+BTSG,0.2,0.034,"BrightSpring Health has <3y of public history (2024 IPO), so the model errors out for insufficient data. Thin ~3.4% operating margin, ~26% YoY growth, high leve"
+APLD,0.25,0.02,"Applied Digital is a cash-burning AI/HPC datacenter developer (op margin -20%, profit margin -60%, rev +139% YoY); the DCF returns a negative FV. Value is pure "
+BLD,0.06,0.155,TopBuild is a housing-cyclical insulation installer/distributor; mid-cycle 6% growth and a structurally improved ~15.5% margin (pricing/mix) give FV $338 vs AV 
+PAG,0.03,0.04,Penske is a diversified auto retailer/commercial-truck dealer with thin ~4% margins; low-single-digit growth and trough-to-mid margin give FV $166.9 vs AV PT $1
+VIRT,0.1,0.2,Virtu is a market-maker/electronic trading firm; DCF invalid (dcf_applicable=false) and trading-income volatility makes a 3-stage DCF meaningless (negative ROIC
+MDGL,0.2,0.35,"Madrigal is a single-drug biotech ramping Rezdiffra (MASH); gross=1.0 and both recent/peak opm are deeply negative (pre-scale), so baseline $1484 is meaningless"
+TXRH,0.09,0.085,Texas Roadhouse is a best-in-class restaurant operator; the right anchor is the ~8.5% restaurant operating margin (gross 65% is a COGS-in-opex artifact). Decele
+ARW,0.02,0.035,"Arrow is a thin-margin (~3.5%) electronics-components distributor in a destocking trough; low-single-digit through-cycle growth gives FV $221.5, right on the $2"
+ALLE,0.06,0.2,Allegion is a wide-moat security-hardware compounder (locks/access) with ~20% margins and high ROIC; 6% growth at Medium uncertainty gives FV $172.2 vs AV PT $1
+GDDY,0.07,0.22,"GoDaddy is a high-FCF domains/SMB-software platform; using a 22% normalized margin (between recent 19.5% and TTM 24.7%, not the depressed 12% peak artifact) wit"
+CPT,0.04,0.3,Camden Property is a Sunbelt apartment REIT; DCF invalid (dcf_applicable=false) so the baseline $48 is a DCF artifact — value on FFO/AFFO multiple. AV PT $112.9
+BXP,0.03,0.33,BXP (Boston Properties) is a premier-office REIT; DCF invalid (dcf_applicable=false) and the baseline $24 is a DCF artifact — value on FFO multiple and asset va
+SWKS,0.02,0.2,Skyworks is an RF-chip supplier in a smartphone downcycle; mid-cycle margin 20% (between trough recent 15% and peak 32%) with ~flat growth gives FV $67.2 vs AV 
+ZBRA,0.05,0.14,Zebra (AIDC scanners/printers) is recovering from a hardware destocking downcycle; mid-cycle 5% growth and 14% margin give a conservative FV $158 vs a ~$215 pri
+SJM,0.02,0.14,"J.M. Smucker is a slow-growth packaged-foods name carrying the Hostess goodwill impairment (negative GAAP EPS is a write-off, not operations); 2% growth at the "
+AR,0.04,0.18,Antero is a leveraged Appalachian natural-gas E&P; I value on a mid-cycle ~18% margin (between the trough 8.5% and the current LNG-rally 36.5% TTM) at High unce
+AFG,0.04,0.15,"American Financial Group is a specialty P&C insurer; DCF invalid (dcf_applicable=false) so value on normalized P/E (~11-12x) and P/B x ROE. AV PT $142.83, mid-s"
+IT,0.06,0.21,"Gartner is a wide-moat, very-high-ROIC (~43%) research-subscription compounder; 6% growth at a 21% operating margin gives FV $352. The $167 AV AnalystTargetPric"
+RVTY,0.05,0.26,Revvity is a life-sciences/diagnostics tools company whose GAAP op margin (12.5%) is depressed by acquisition amortization; normalizing to a ~26% adjusted opera
+KTOS,0.12,0.08,"Kratos is a defense-tech name (drones/target systems, hypersonics, propulsion) earning thin ~2-4% margins today; even a generous in-model run (12% growth, 8% ma"
+BMRN,0.12,0.28,"BioMarin is a rare-disease biopharma scaling Voxzogo and the enzyme-therapy franchise; the cached opm_peak (1.9%) is a pre-scale artifact, so I use a 28% normal"
+UMBF,0.06,0.37,"UMB Financial is a bank (dcf_applicable=false); the baseline $2151 is a meaningless DCF artifact. On bank metrics it screens cheap: fwd PE 10.5, P/B 1.31, ROE ~"
+OGE,0.04,0.245,"OGE Energy is a regulated Oklahoma electric utility (fwd PE ~20, ~flat QoQ rev); using the structural ~24.5% op margin (opm_recent) gives FV $44 against AV PT $"
+AHR,,,American Healthcare REIT has <3y of usable history (recent 2024 IPO) so the model errors out; it is a senior-housing/medical-office REIT that must be valued on 
+GME,0.02,0.04,GameStop's earnings are now mostly interest income on a ~$4-5B cash/bitcoin hoard rather than its declining retail core (rev CAGR -12%/-17%); a thin 4% op margi
+AGX,,,Argan is a lumpy EPC power-plant builder; revenue swings >45% year to year (data flagged spin-off/restructuring) and the market prices >=40% growth on the gas-t
+ESI,0.05,0.134,"Element Solutions is a specialty-chemicals maker (electronics/industrial); on its real ~13% op margin the DCF gives only $11 vs AV PT $47.3 and a ~$25 price, be"
+CYTK,,,"Cytokinetics is a pre-profit biotech (op margin -949%, EPS -$6.85, gross-margin artifact 1.0); its value is the aficamten/HCM pipeline launch, not a DCF — AV PT"
+BROS,0.18,0.13,"Dutch Bros is a fast unit-growth drive-thru coffee chain (rev CAGR ~30-35%, QoQ +31%); decelerating to ~18% with a mature ~13% shop-level-driven op margin gives"
+CART,0.11,0.18,Maplebear (Instacart) is a high-gross-margin (75%) grocery-delivery + ads platform now GAAP-profitable (fwd PE 16); modeling ~11% GTV-led growth and a real ~18%
+DCI,0.05,0.155,"Donaldson is a wide-moat filtration compounder with sticky aftermarket razor/blade economics (ROIC ~20%, fwd PE 19); using its real ~15.5% op margin gives FV $8"
+HLI,0.08,0.2,"Houlihan Lokey is an advisory/restructuring investment bank (dcf_applicable=false, gross-margin artifact 1.0); the $458 baseline is a DCF artifact. On bank/advi"
+SCI,0.04,0.22,"Service Corp is the scaled deathcare consolidator with a durable pre-need backlog (op margin ~22%, ROE 33%); modeling ~4% growth at its real margin gives FV $82"
+ALSN,0.03,0.28,Allison Transmission is a wide-moat near-monopoly in commercial automatic transmissions earning a structural ~28-30% op margin (opm_recent 0.303); at low ~3% gr
+OC,0.05,0.16,"Owens Corning is a building-products cyclical (insulation/roofing); a one-off TTM loss (EPS -$4.74, GAAP margin -5.4% from a write-down) distorts trailing data,"
+ALV,0.04,0.1,Autoliv is the leading auto passive-safety (airbags/seatbelts) supplier tied to global light-vehicle builds; at ~4% growth and a ~10% mid-cycle op margin FV is 
+SNAP,0.1,0.12,"Snap is a still-GAAP-unprofitable social platform (op margin -4.9% TTM, EPS -$0.24) with decelerating ~10-12% revenue growth; crediting a thin ~12% at-scale FCF"
+CWEN,0.03,0.358,Clearway Energy is a debt-funded renewable yieldco whose equity DCF is fragile (a 20% margin override flips FV negative on the leverage); the baseline ~36% marg
+BAH,0.03,0.1,Booz Allen is a govt-IT/consulting prime facing federal-budget (DOGE) cuts — QoQ revenue -6.5% and fwd PE only 12.6; even at 3% growth/10% margin the moat-drive
+BRX,0.05,0.42,"Brixmor is an open-air/grocery-anchored shopping-center REIT (dcf_applicable=false, gross-margin artifact 1.0); the $17 baseline is not a real DCF. Value on FFO"
+DDS,0.02,0.11,"Dillard's is a high-return department-store operator (ROE 34%, ROIC 29%) with flat-to-declining revenue but huge owned real estate and buybacks; at ~2% growth a"
+DAR,,,Darling Ingredients (rendering + Diamond Green Diesel JV) has its value distorted by volatile feedstock/renewable-diesel margins; model FV fell below 18% of pri
+AVAV,0.18,0.11,"AeroVironment (drones/loitering munitions) is in a demand spike — QoQ rev +143%, but TTM op margin -5% on the BlueHalo deal integration; the market prices >=40%"
+FLS,0.05,0.1,Flowserve is a flow-control (pumps/valves) supplier to energy/process industries with an improving ~10% op margin; at ~5% growth FV is $46 vs AV PT $90 and a ~1
+JOBY,,,"Joby is a pre-revenue eVTOL air-taxi developer (op margin -963%, essentially no sales, gross-margin artifact); there is no DCF — the ~$11 price and AV PT $11.12"
+TTD,0.2,0.3,The Trade Desk is a wide-moat independent ad-buying (DSP) platform with 80% gross margin and ROIC 33% (rev CAGR ~22-25%); decelerating to ~20% growth and a matu

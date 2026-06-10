@@ -1,0 +1,11 @@
+t,sector,dcf_ok,my_fv,ms_fv,ratio,my_moat,ms_moat,my_star,ms_star
+LIN,Materials,True,124.43,540.0,0.23,None,Wide,1,4
+SCCO,Materials,True,91.08,131.87,0.691,Wide,Wide,1,2
+NEM,Materials,True,102.89,72.0,1.429,None,None,3,2
+FCX,Materials,True,39.0,31.0,1.258,Narrow,None,1,1
+NFLX,Communication Services,True,44.94,80.0,0.562,Narrow,Narrow,1,3
+TMUS,Communication Services,True,68.49,240.0,0.285,None,Narrow,1,4
+WMT,Consumer Staples,True,49.0,70.0,0.7,Narrow,Wide,1,1
+COST,Consumer Staples,True,491.95,740.0,0.665,Wide,Wide,1,2
+PG,Consumer Staples,True,88.03,148.0,0.595,Wide,Wide,1,3
+PM,Consumer Staples,True,92.55,171.0,0.541,Wide,Wide,1,3

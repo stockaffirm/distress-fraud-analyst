@@ -1,0 +1,35 @@
+# API keys — never commit
+.env
+*.env
+
+# SQLite state DBs (user-specific, rebuilt on install)
+calibration_state.db
+av_cache.db
+
+# Morningstar cache (large, user-specific)
+ms_cache/
+
+# Workflow outputs
+wf_out/
+
+# Error / debug logs
+*.log
+err*.log
+live_run.log
+
+# Temp / Office lock files
+~$*
+*.xlsx
+
+# Debug artifacts
+audit_sample.json
+calibration_audit_round1.js
+
+# Machine-specific sync state
+AGENT_SYNC_STATE.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
