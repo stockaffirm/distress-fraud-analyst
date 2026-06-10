@@ -92,16 +92,33 @@ def _ensure_imports():
 def analyze_ticker(ticker, explain=False, model=None):
     """
     Run the full pipeline for one ticker.
+    When explain=True, passes FULL multi-year financials + live API signals to
+    the LLM so it can investigate and ground every claim in actual data.
     Returns a clean dict ready for JSON serialisation.
     """
     _ensure_imports()
     ticker = ticker.upper().strip()
 
+    # Layer 1 + 2: deterministic Python screen
     try:
         result = _process_one(ticker, write=False)
     except Exception as e:
         return {"ticker": ticker, "error": f"pipeline error: {e}",
                 "effective_bucket": "ERROR"}
+
+    # Fetch full financials + raw API signals for LLM investigation
+    # (only when explain=True to avoid unnecessary AV calls on fast/batch queries)
+    full_hist = None
+    api_raw   = None
+    if explain and _llm_client and _llm_client.active:
+        try:
+            from data_loader import load_fundamentals, full_history
+            from massive_api import event_scan
+            fund      = load_fundamentals(ticker)
+            full_hist = full_history(fund) if fund else None
+            api_raw   = event_scan(ticker)
+        except Exception:
+            pass   # LLM will still run with whatever it has
 
     out = {
         "ticker":           result.get("ticker", ticker),
@@ -131,7 +148,10 @@ def analyze_ticker(ticker, explain=False, model=None):
     if explain and _llm_client and _llm_client.active:
         client = _llm_client if not model else \
                  type(_llm_client)(provider=_llm_client.provider, model=model)
-        explanation, err = client.explain(ticker, result)
+        # Pass full financials + raw API signals so LLM can ground every claim
+        explanation, err = client.explain(
+            ticker, result, full_hist=full_hist, api_raw=api_raw
+        )
         out["explanation"] = explanation
         if err and not explanation:
             out["explanation_error"] = err

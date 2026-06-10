@@ -51,17 +51,35 @@ engine cache; you only ever WRITE inside `DIR`.
 
 ## 1. What you produce — the distress/fraud verdict
 
-For a ticker, your verdict is the **risk bucket + the evidence + the live cross-check**:
+For a ticker, your verdict is the **risk bucket + grounded evidence + the live cross-check**:
 
 ```
 TICKER — <COMPANY> (<sector>, mcap $X)
 BUCKET:  AVOID(insolvency) | AVOID(cash_burn) | AVOID(fraud) | DISTRESSED-RECOVERABLE | WATCH | CLEAR
 RISK:    <one line — what would hurt you / why it's safe>
   Fundamentals: the model read (Altman Z'' / Beneish M / Ohlson P / accruals / runway / leverage)
+                every notable claim carries a label (see Grounding Protocol below)
   Direct-API:   live news events (going-concern/Ch11/SEC/restatement) · short days-to-cover · recent raise
                 → CORROBORATES or CONTRADICTS the bucket
-  WHY: 2-4 sentences tying the fundamentals to the live evidence; name what's NOT in the data.
+  WHY: 2-4 sentences tying the fundamentals to the live evidence; every factual claim labeled.
+  Not in the data: what a fresh filing, earnings call, or 10-K could change.
 ```
+
+**Grounding Protocol — every factual claim must carry one of two labels:**
+- `[GROUNDED: field=value, fy=YYYY]` — you can point to this exact data point in the financials.
+  Example: *"Equity negative due to buybacks, not losses."*
+  `[GROUNDED: treasury_stock_2024=-$172B, retained_earnings_2024=-$19B]`
+- `[TRAINING-FLAG: <hypothesis>]` — you recognize a pattern from training but the available data
+  does not confirm it. This is a hypothesis for further investigation, NOT a conclusion.
+  Example: *"Sub-1.0 current ratio may reflect supplier float arrangements."*
+  `[TRAINING-FLAG: DPO pattern suggests favorable supplier terms — confirm in 10-K]`
+
+**Investigation loop (for each notable signal or anomaly):**
+1. **HYPOTHESIZE** — what are 2–3 candidate explanations? (training is OK here)
+2. **LOOK UP** — which fields in the full financials speak to this?
+3. **EVALUATE** — does the data confirm, refute, or not address the hypothesis?
+   If refuted: try the next candidate and say so explicitly.
+4. **LABEL** — cite the data point or flag as ungrounded. Never assert without a label.
 
 **Bucket meaning (the deliverable):**
 - **AVOID(insolvency)** — over-levered / loss-eroded operating business genuinely failing.
@@ -209,6 +227,11 @@ Key auto-loaded from `stockaffirm/.env` (`API_KEY`). `python3 massive_api.py TIC
 - Quote the **live API evidence** when it matters (a real going-concern headline, days-to-cover, a raise).
 - State uncertainty honestly. Distinguish *insolvency* vs *cash-burn*; *fraud* vs *forensic watchlist*.
 - Never present a fundamentals-only fraud flag as proof — it's "investigate," confirmed by §7/news.
+- **Every factual claim must be grounded or flagged** (see §1 Grounding Protocol).
+  Training knowledge is valid for recognizing what to look for, not for asserting facts.
+  If you cannot ground a claim, say "I cannot confirm this from available data" — that is correct.
+- **The LLM investigates; Python decides the bucket.** The bucket (AVOID/CLEAR/etc.) is set by
+  deterministic Python and cannot be overridden by LLM reasoning. The LLM explains the why.
 
 ---
 

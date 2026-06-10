@@ -44,7 +44,7 @@
    │
    ▼
  ┌─ data_loader.full_history ── 10y income + balance + CASH-FLOW (exact) ─┐
-   │
+   │                            (live Alpha Vantage fetch, 24hr SQLite cache)
    ▼
  LAYER 1  distress_screen.screen()  — 7 models, all at once
    │   Altman Z''   Beneish M   Ohlson O   Sloan accruals   Montier C
@@ -75,6 +75,18 @@
    ▼
  EFFECTIVE BUCKET  =  AVOID(insolvency | cash_burn | fraud)
                       | DISTRESSED-RECOVERABLE | WATCH | CLEAR
+   │
+   ▼  (only when explanation requested — Mode 2 subagent or Mode 3 API with explain=true)
+ LAYER 3  LLM INVESTIGATOR  (llm_client.py)
+   │   Receives: full 5yr financials (every field) + screen output + live API signals
+   │   Runs investigation loop per notable signal:
+   │     HYPOTHESIZE (training) → LOOK UP (data) → CONFIRM/REFUTE → LABEL
+   │   Every claim labeled:
+   │     [GROUNDED: field=value, fy=YYYY]  — data confirms it
+   │     [TRAINING-FLAG: hypothesis]       — recognized pattern, not data-confirmed
+   │   Never asserts facts not present in the provided data
+   ▼
+ CITED VERDICT  (every factual claim traceable to a data point or flagged as hypothesis)
 ```
 
 ## 3. The bucketing logic (how a name lands)
@@ -151,9 +163,77 @@
               └─ if a METHOD doc changed → agent makes the minimal md/playbook edit
 ```
 
+## 6. The three callable modes
+
+```
+  MODE 1 — Skill (Claude chat)
+  ────────────────────────────
+  /distress-fraud-screen VFS
+       └─► skill/distress-fraud-screen/SKILL.md
+             └─► agent: distress-fraud-analyst
+                   └─► runs Layers 1+2+3 inline
+
+  MODE 2 — Subagent (agent-to-agent)
+  ────────────────────────────────────
+  subagent_type: distress-fraud-analyst
+  (portfolio-analyst / fair-value-analyst / any workflow)
+       └─► ~/.claude/agents/distress-fraud-analyst.md
+             └─► reads brain docs live (STEP ZERO)
+                   └─► runs Layers 1+2 (Python) + Layer 3 (LLM) for explanation
+
+  MODE 3 — API server (any server, any language, any scheduler)
+  ──────────────────────────────────────────────────────────────
+  python3 api_server.py --port 8080
+
+  GET  /health                        → status, llm_active, provider
+  POST /analyze    {"ticker":"VFS",   → full JSON verdict
+                    "explain":true}     (explain=true triggers Layer 3 LLM)
+  POST /analyze/batch                 → parallel, up to 200 tickers
+  GET  /universe/summary              → CALIBRATED_FINDINGS.md as JSON
+
+  explain=false: Layers 1+2 only, pure Python, instant, no LLM cost
+  explain=true:  Layers 1+2+3, full financials passed to LLM, cited verdict
+```
+
+## 7. The grounding protocol (Layer 3 — LLM investigator)
+
+```
+  PROBLEM: LLM says "buyback artifact" from training knowledge, not data.
+  SOLUTION: Pass full 5yr financials to the LLM; require it to investigate.
+
+  Investigation loop (per notable signal):
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  Signal: "equity is NEGATIVE"                                       │
+  │                                                                     │
+  │  Step 1 HYPOTHESIZE (training OK here)                              │
+  │    candidates: (a) buybacks  (b) accumulated losses  (c) impairment │
+  │                                                                     │
+  │  Step 2 LOOK UP (from full financials in context)                   │
+  │    → treasury_stock_2024 = -172B                                    │
+  │    → retained_earnings_2024 = -19B                                  │
+  │                                                                     │
+  │  Step 3 EVALUATE                                                    │
+  │    treasury ($172B) >> RE deficit ($19B) by 9×                      │
+  │    → hypothesis (a) CONFIRMED                                       │
+  │    → hypothesis (b) REFUTED (RE deficit is small)                   │
+  │                                                                     │
+  │  Step 4 LABEL                                                       │
+  │    "Equity negative due to buybacks, not losses."                   │
+  │    [GROUNDED: treasury_stock=-$172B, RE=-$19B, fy=2024]             │
+  └─────────────────────────────────────────────────────────────────────┘
+
+  If data does NOT confirm hypothesis:
+    [TRAINING-FLAG: <pattern> — not data-confirmable; needs 10-K investigation]
+
+  Rule: every factual claim in the verdict must carry one of these two labels.
+  Training knowledge = valid for PATTERN RECOGNITION; invalid for FACT ASSERTION.
+```
+
 ## Legend
-- **Layer 1 = Python, offline, exhaustive** (fundamentals → candidate bucket).
+- **Layer 1 = Python, deterministic** (fundamentals → candidate bucket; 7 models).
 - **Layer 2 = Python, live Massive API** (news/short/raise → confirm or correct).
-- **effective_bucket = Layer1 ⊕ Layer2 = the final answer.**
-- **Agent (LLM) only enters to CALIBRATE** — encode a general fix + log it; everything
-  else runs deterministically on all 5,022 names with no model in the loop.
+- **effective_bucket = Layer1 ⊕ Layer2 = the final answer** (no LLM in the loop).
+- **Layer 3 = LLM Investigator** — receives full financials + signals, grounds every
+  claim in data, labels [GROUNDED] or [TRAINING-FLAG]. Optional; never changes the bucket.
+- **Calibration LLM** — only enters to encode a general fix when screen ≠ API. Separate
+  from Layer 3 (explanation) and also separate from the bucket logic.
