@@ -4,8 +4,10 @@ calibrate.py -- SEQUENTIAL, one-ticker-at-a-time calibration loop with DIRECT AP
 
 For each ticker (largest market cap first), it:
   1. re-screens LIVE  (distress_screen.screen on cached fundamentals + cache news)
-  2. pulls DIRECT-API ground truth (massive_api.event_scan: live news events,
-     short interest / days-to-cover, recent capital raises)
+  2. pulls DIRECT-API ground truth:
+       massive_api.event_scan   — live news events, short interest, capital raises
+       edgar_api.edgar_10k_signals — 10-K going-concern opinion, material weakness,
+                                     covenant violations (7-day cache; no-key)
   3. compares the bucket to the API evidence -> a validation VERDICT
   4. appends the result to CALIBRATION_LEDGER.csv and checkpoints CALIBRATION_PROGRESS.json
 
@@ -26,6 +28,10 @@ try:
 except Exception:
     scan_ticker = None
 from massive_api import event_scan
+try:
+    from edgar_api import edgar_10k_signals as _edgar_signals
+except Exception:
+    _edgar_signals = None
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEDGER = os.path.join(HERE, "CALIBRATION_LEDGER.csv")
@@ -33,6 +39,7 @@ PROGRESS = os.path.join(HERE, "CALIBRATION_PROGRESS.json")
 COLS = ["ticker", "sector", "market_cap", "bucket", "effective_bucket", "distress_type",
         "fraud", "fraud_watchlist", "verdict", "api_distress", "api_fraud", "api_high_short",
         "api_recent_raise", "short_dtc", "n_news", "n_bk_events", "n_fraud_events",
+        "edgar_gc", "edgar_mw", "edgar_cov",
         "effective_reason", "note"]
 
 
@@ -48,6 +55,8 @@ def effective_bucket(screen_bucket, verdict):
     if verdict == "UNDERFLAG_distress_event":
         return ("AVOID" if screen_bucket in ("AVOID", "WATCH", "DISTRESSED-RECOVERABLE") else "WATCH"), \
                "promoted — ≥2 live distress (going-concern/Ch11/default) news articles"
+    if verdict == "UNDERFLAG_gc_opinion":
+        return "AVOID", "promoted — EDGAR 10-K auditor going-concern opinion found; screen missed it"
     if verdict == "NEWS_NOTE":
         return screen_bucket, "single news mention (kept screen bucket; investigate)"
     return screen_bucket, ""
@@ -75,8 +84,8 @@ def done_set():
     return {r["ticker"] for r in csv.DictReader(open(LEDGER))}
 
 
-def verdict_for(res, e):
-    """Compare the screen bucket to the direct-API evidence."""
+def verdict_for(res, e, edgar=None):
+    """Compare the screen bucket to the direct-API evidence + EDGAR 10-K signals."""
     bucket = res["bucket"]
     dt = res.get("distress_type")
     if bucket == "AVOID" and res["fraud"]:
@@ -92,6 +101,9 @@ def verdict_for(res, e):
             return "OVERFLAG_recent_raise", "recent capital raise extends runway"
         return "AVOID_unconfirmed", "no API distress/short signal (coverage may be thin)"
     # CLEAR / WATCH / DISTRESSED-RECOVERABLE
+    # -- EDGAR going-concern opinion is a hard override: auditor signed off on it --
+    if edgar and edgar.get("going_concern_flag"):
+        return "UNDERFLAG_gc_opinion", "EDGAR 10-K auditor going-concern opinion; screen bucket was " + bucket
     nbk, nfr = len(e["bankruptcy_events"]), len(e["fraud_events"])
     # >=2 corroborating articles = a real event the screen missed (actionable);
     # a single mention = a news note (surface, but not a screen error -- e.g. APP's
@@ -120,7 +132,14 @@ def process_one(ticker, write=True):
     news = scan_ticker(ticker) if scan_ticker else None
     res = screen(ticker, ctx, hist, news=news)
     e = event_scan(ticker)
-    verdict, note = verdict_for(res, e)
+    # EDGAR 10-K signals: going-concern, material weakness, covenant violations (7-day cache)
+    edgar = None
+    if _edgar_signals:
+        try:
+            edgar = _edgar_signals(ticker)
+        except Exception:
+            edgar = None
+    verdict, note = verdict_for(res, e, edgar=edgar)
     eff_bucket, eff_reason = effective_bucket(res["bucket"], verdict)
     top = ""
     if e["bankruptcy_events"]:
@@ -138,6 +157,10 @@ def process_one(ticker, write=True):
         "api_high_short": int(e["api_high_short"]), "api_recent_raise": int(e["api_recent_raise"]),
         "short_dtc": e["short_days_to_cover"], "n_news": e["n_news"],
         "n_bk_events": len(e["bankruptcy_events"]), "n_fraud_events": len(e["fraud_events"]),
+        # EDGAR 10-K signals (0/1 flags for ledger CSV)
+        "edgar_gc":  int(bool(edgar and edgar.get("going_concern_flag"))),
+        "edgar_mw":  int(bool(edgar and edgar.get("material_weakness_flag"))),
+        "edgar_cov": int(bool(edgar and edgar.get("covenant_risk_flag"))),
         "effective_reason": eff_reason,
         "note": (note + (" | " + top if top else ""))[:240],
         # forwarded for LLM investigation layer

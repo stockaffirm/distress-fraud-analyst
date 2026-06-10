@@ -18,10 +18,11 @@ grounding_source for LLM claims: "edgar_10k"
   Or for text excerpts: field="auditor_report_excerpt", value="... text ..."
 
 Download strategy:
-  Read up to MAX_BYTES of raw HTML (default 2MB) from the primary 10-K document.
-  For most distressed companies (the ones that matter), the full filing fits within
-  this limit. Large-cap healthy companies rarely need going-concern checks.
-  text_truncated=True signals the document was larger and the tail was not read.
+  Downloads the FULL primary 10-K document (no artificial size cap — MAX_BYTES is a
+  50MB safety ceiling that no real filing will hit). The going-concern opinion from the
+  external auditor appears in the financial statements section (latter half of large filings)
+  and is only reliably found in a complete download. text_truncated=True in output means
+  the document exceeded the safety ceiling (would be extraordinary).
 
 Usage:
   from edgar_api import edgar_10k_signals
@@ -42,7 +43,7 @@ from pathlib import Path
 HERE          = Path(__file__).parent
 CACHE_DB      = HERE / "av_cache.db"          # shared with data_loader
 CACHE_TTL_DAYS = 7                             # 10-K filings don't change after filing
-MAX_BYTES     = 2_000_000                      # 2MB raw HTML cap (~500K stripped chars)
+MAX_BYTES     = 50_000_000                     # 50MB safety ceiling (full documents; Oracle ~15MB)
 
 # SEC requires a descriptive User-Agent
 _SEC_UA = "StockAffirm Distress Analyst contact@stockaffirm.com"

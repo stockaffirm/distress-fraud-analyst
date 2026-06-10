@@ -32,7 +32,8 @@ DEFAULT_TTL = 30
 
 FIELDS = ["ticker", "market_cap", "sector", "status", "screen_bucket", "effective_bucket",
           "distress_type", "verdict", "api_distress", "api_fraud", "api_high_short",
-          "api_recent_raise", "short_dtc", "reasons", "fraud_reasons", "effective_reason",
+          "api_recent_raise", "short_dtc", "edgar_gc", "edgar_mw", "edgar_cov",
+          "reasons", "fraud_reasons", "effective_reason",
           "note", "logic_version", "last_processed_utc", "attempts"]
 
 
@@ -52,6 +53,12 @@ def init_db():
         logic_version TEXT, last_processed_utc TEXT, attempts INT DEFAULT 0)""")
     c.execute("CREATE INDEX IF NOT EXISTS idx_status ON tickers(status)")
     c.execute("CREATE INDEX IF NOT EXISTS idx_mc ON tickers(market_cap)")
+    # Add EDGAR columns to existing databases (ALTER TABLE ... ADD COLUMN is idempotent via try/except)
+    for col_def in ("edgar_gc INT", "edgar_mw INT", "edgar_cov INT"):
+        try:
+            c.execute(f"ALTER TABLE tickers ADD COLUMN {col_def}")
+        except Exception:
+            pass   # column already exists
     c.commit()
     return c
 
@@ -139,15 +146,17 @@ def upsert_result(c, row, now_utc):
         "error" if row.get("verdict") == "ERROR" else "done")
     c.execute("""UPDATE tickers SET market_cap=?, sector=?, status=?, screen_bucket=?, effective_bucket=?,
                  distress_type=?, verdict=?, api_distress=?, api_fraud=?, api_high_short=?,
-                 api_recent_raise=?, short_dtc=?, reasons=?, fraud_reasons=?, effective_reason=?,
+                 api_recent_raise=?, short_dtc=?, edgar_gc=?, edgar_mw=?, edgar_cov=?,
+                 reasons=?, fraud_reasons=?, effective_reason=?,
                  note=?, logic_version=?, last_processed_utc=?, attempts=COALESCE(attempts,0)+1
                  WHERE ticker=?""",
               (_f(row.get("market_cap")), row.get("sector"), status, row.get("bucket"),
                row.get("effective_bucket"), row.get("distress_type"), row.get("verdict"),
                _i(row.get("api_distress")), _i(row.get("api_fraud")), _i(row.get("api_high_short")),
-               _i(row.get("api_recent_raise")), _f(row.get("short_dtc")), row.get("reasons"),
-               row.get("fraud_reasons"), row.get("effective_reason"), row.get("note"),
-               LOGIC_VERSION, now_utc, row["ticker"]))
+               _i(row.get("api_recent_raise")), _f(row.get("short_dtc")),
+               _i(row.get("edgar_gc")), _i(row.get("edgar_mw")), _i(row.get("edgar_cov")),
+               row.get("reasons"), row.get("fraud_reasons"), row.get("effective_reason"),
+               row.get("note"), LOGIC_VERSION, now_utc, row["ticker"]))
     c.commit()
 
 

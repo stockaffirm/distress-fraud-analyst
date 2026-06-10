@@ -26,16 +26,22 @@ def export_ledger(c):
     rows = c.execute("SELECT * FROM tickers ORDER BY market_cap DESC").fetchall()
     cols = ["ticker", "sector", "market_cap", "bucket", "effective_bucket", "distress_type",
             "verdict", "status", "api_distress", "api_fraud", "api_high_short", "api_recent_raise",
-            "short_dtc", "effective_reason", "note", "logic_version", "last_processed_utc"]
+            "short_dtc", "edgar_gc", "edgar_mw", "edgar_cov",
+            "effective_reason", "note", "logic_version", "last_processed_utc"]
     with open(os.path.join(HERE, "CALIBRATION_LEDGER.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(cols)
         for r in rows:
-            w.writerow([r["ticker"], r["sector"], r["market_cap"], r["screen_bucket"],
-                        r["effective_bucket"], r["distress_type"], r["verdict"], r["status"],
-                        r["api_distress"], r["api_fraud"], r["api_high_short"], r["api_recent_raise"],
-                        r["short_dtc"], r["effective_reason"], r["note"], r["logic_version"],
-                        r["last_processed_utc"]])
+            # Use dict-style access with fallback for columns that may not exist in older DBs
+            rd = dict(r)
+            w.writerow([rd.get("ticker"), rd.get("sector"), rd.get("market_cap"),
+                        rd.get("screen_bucket"), rd.get("effective_bucket"), rd.get("distress_type"),
+                        rd.get("verdict"), rd.get("status"),
+                        rd.get("api_distress"), rd.get("api_fraud"), rd.get("api_high_short"),
+                        rd.get("api_recent_raise"), rd.get("short_dtc"),
+                        rd.get("edgar_gc"), rd.get("edgar_mw"), rd.get("edgar_cov"),
+                        rd.get("effective_reason"), rd.get("note"), rd.get("logic_version"),
+                        rd.get("last_processed_utc")])
 
 
 def run(minutes=8.0):
@@ -63,6 +69,7 @@ def run(minutes=8.0):
             vc[row.get("verdict")] += 1
             processed += 1
             if row.get("verdict") in ("UNDERFLAG_distress_event", "UNDERFLAG_fraud_event",
+                                      "UNDERFLAG_gc_opinion",
                                       "OVERFLAG_recent_raise", "OVERFLAG_review"):
                 mc = row.get("market_cap") or 0
                 print(f"  ⚑ {row['ticker']:6} {row.get('bucket'):22} -> {row.get('effective_bucket'):22} "

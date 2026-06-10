@@ -34,9 +34,12 @@ engine cache; you only ever WRITE inside `DIR`.
 | `analyst.py` | valuation CLI → Morningstar-style report (`python3 analyst.py TICKER`) |
 | `distress_screen.py` | the **distress/fraud brain** — 7 models + gates + news (`screen(...)`) |
 | `distress_news.py` | news/event layer over the engine news cache |
-| `massive_api.py` | **direct Massive API** — live news events, short interest, capital raises |
-| `calibrate.py` | the **sequential per-ticker calibration loop** (validate vs direct API) |
-| `data_loader.py` | read-only loader (`full_history` = income+balance+**cash-flow**, exact) |
+| `massive_api.py` | **direct Massive API** — live news events (full corpus, no cap), short interest, capital raises |
+| `edgar_api.py` | **SEC EDGAR 10-K signals** — going-concern opinion, material weakness, covenant risk (7-day cache) |
+| `calibrate.py` | the **sequential per-ticker calibration loop** (validate vs direct API + EDGAR) |
+| `data_loader.py` | read-only loader (`full_history` = income+balance+**cash-flow**; `price_history` = AV monthly prices) |
+| `llm_client.py` | LLM investigation layer — 4-source grounded prompts (financials, prices, news, EDGAR) |
+| `api_server.py` | HTTP API server — `/analyze` (single) + `/analyze/batch` (parallel) |
 | `distress_batch.py` | whole-universe distress run → `DISTRESS_SCREEN.csv` + `DISTRESS_REPORT.md` |
 | `batch_runner.py` | whole-universe valuation → `FAIR_VALUE_ALL.csv` |
 | `reconcile.py` | per-ticker reconciliation vs Morningstar |
@@ -49,37 +52,77 @@ engine cache; you only ever WRITE inside `DIR`.
 
 ---
 
-## 1. What you produce — the distress/fraud verdict
+## 1. What you produce — the distress/fraud verdict (always JSON)
 
-For a ticker, your verdict is the **risk bucket + grounded evidence + the live cross-check**:
+**Single-ticker output is always a JSON object — no prose wrapper, no markdown fences.**
+The JSON is the verdict. Callers (skill, API, UI) parse and render it; you do not narrate.
 
+```json
+{
+  "ticker": "ASTS",
+  "bucket": "AVOID(cash_burn)",
+  "confidence": "high|medium|low",
+  "one_line_risk": "one sentence — what hurts the investor or why it is safe",
+  "python_screen": {
+    "screen_bucket": "AVOID",
+    "effective_bucket": "AVOID",
+    "verdict": "CORROBORATED",
+    "edgar_gc": false, "edgar_mw": false, "edgar_cov": false,
+    "note": "..."
+  },
+  "investigation": [
+    {
+      "signal": "specific Python flag or financial anomaly — e.g. 'going_concern_flag=True', 'Beneish M=-1.2', 'cash runway 8mo'",
+      "hypotheses": ["(a) most likely explanation", "(b) alternative"],
+      "lookup": "specific fields / articles / edgar excerpts checked",
+      "evaluate": "must say 'hypothesis (a) CONFIRMED' or 'hypothesis (b) REFUTED' explicitly",
+      "label": "GROUNDED: field=value, fy=YYYY  OR  TRAINING-FLAG: exact reason"
+    }
+  ],
+  "grounded_claims": [
+    {
+      "claim": "factual statement confirmed from data or news",
+      "grounding_source": "av_financial|calculated|av_price_data|edgar_10k|massive_news|av_news",
+      "field": "field name, edgar flag, or headline title",
+      "value": "actual value",
+      "fy": 2024
+    }
+  ],
+  "training_flags": [
+    {
+      "concern": "what training suggests but data does not confirm",
+      "grounding_source": "training_only",
+      "why_ungrounded": "not in financials / no matching article / price data absent",
+      "investigate": "SEC EDGAR 8-K / 10-K §X / news search: exact query",
+      "urgency": "high|medium|low"
+    }
+  ],
+  "unresolved": [
+    {
+      "screen_flag": "Python flag that fired",
+      "explanation": "why you cannot resolve it from available data",
+      "next_step": "where to look"
+    }
+  ],
+  "narrative": "2-4 sentences connecting fundamentals to live signals; cite grounding sources"
+}
 ```
-TICKER — <COMPANY> (<sector>, mcap $X)
-BUCKET:  AVOID(insolvency) | AVOID(cash_burn) | AVOID(fraud) | DISTRESSED-RECOVERABLE | WATCH | CLEAR
-RISK:    <one line — what would hurt you / why it's safe>
-  Fundamentals: the model read (Altman Z'' / Beneish M / Ohlson P / accruals / runway / leverage)
-                every notable claim carries a label (see Grounding Protocol below)
-  Direct-API:   live news events (going-concern/Ch11/SEC/restatement) · short days-to-cover · recent raise
-                → CORROBORATES or CONTRADICTS the bucket
-  WHY: 2-4 sentences tying the fundamentals to the live evidence; every factual claim labeled.
-  Not in the data: what a fresh filing, earnings call, or 10-K could change.
-```
 
-**Grounding Protocol — every factual claim must carry one of two labels:**
-- `[GROUNDED: field=value, fy=YYYY]` — you can point to this exact data point in the financials.
-  Example: *"Equity negative due to buybacks, not losses."*
-  `[GROUNDED: treasury_stock_2024=-$172B, retained_earnings_2024=-$19B]`
-- `[TRAINING-FLAG: <hypothesis>]` — you recognize a pattern from training but the available data
-  does not confirm it. This is a hypothesis for further investigation, NOT a conclusion.
-  Example: *"Sub-1.0 current ratio may reflect supplier float arrangements."*
-  `[TRAINING-FLAG: DPO pattern suggests favorable supplier terms — confirm in 10-K]`
+**investigation[] — one entry per notable signal, highest-risk first.**
+For each: HYPOTHESIZE (2 candidates from training) → LOOK UP (exact fields/articles) →
+EVALUATE (confirm or refute) → LABEL (grounded or training-only). Never skip a flag.
 
-**Investigation loop (for each notable signal or anomaly):**
-1. **HYPOTHESIZE** — what are 2–3 candidate explanations? (training is OK here)
-2. **LOOK UP** — which fields in the full financials speak to this?
-3. **EVALUATE** — does the data confirm, refute, or not address the hypothesis?
-   If refuted: try the next candidate and say so explicitly.
-4. **LABEL** — cite the data point or flag as ungrounded. Never assert without a label.
+**Bucket values:**
+- *Grounded*: `AVOID(insolvency)` · `AVOID(cash_burn)` · `AVOID(fraud)` · `DISTRESSED-RECOVERABLE` · `WATCH` · `CLEAR`
+- *Training-flag*: `TRAINING-FLAG(distress)` · `TRAINING-FLAG(fraud)` · `TRAINING-FLAG(watch)`
+  → use when you suspect risk but cannot confirm it from the available data
+
+**Grounding sources:**
+- `av_financial` — cite field + year. `calculated` — show formula + values. `av_price_data` — cite date + adj_close.
+- `edgar_10k` — cite flag name + filing_date + quote the excerpt. `massive_news` / `av_news` — cite headline + date.
+- `training_only` — ONLY valid in `training_flags`, never in `grounded_claims`.
+
+**confidence:** `"high"` = major claims all grounded · `"medium"` = significant training_only items · `"low"` = mostly training_only
 
 **Bucket meaning (the deliverable):**
 
@@ -98,37 +141,36 @@ RISK:    <one line — what would hurt you / why it's safe>
 
 Use TRAINING-FLAG when: Python flagged something the LLM can't confirm OR refute from data; training suggests risk the financials don't surface; conflicting evidence can't be resolved.
 
-The **`effective_bucket`** is the answer — the screen bucket reconciled with the direct-API overlay
-(`calibrate.py` computes it): CORROBORATED→AVOID; `OVERFLAG_recent_raise`/`review`→downgrade a
-funded burner to WATCH (a just-closed offering extends runway the snapshot can't see);
-`UNDERFLAG_*` with ≥2 live news articles→escalate to WATCH/AVOID. Short interest only *corroborates*
-an existing AVOID — it never flags on its own. If asked for an investment call, add a one-line
-risk-overlay (distress dominates: a cheap stock going bankrupt is not a buy) and defer the buy/sell
-verdict to `portfolio-analysis` and the fair value to `fair-value-analyst`.
+The **`effective_bucket`** is the answer — the screen bucket reconciled with the direct-API + EDGAR
+overlay (`calibrate.py` computes it): CORROBORATED→AVOID; `OVERFLAG_recent_raise`/`review`→downgrade
+a funded burner to WATCH (a just-closed offering extends runway the snapshot can't see);
+`UNDERFLAG_*` with ≥2 live news articles→escalate to WATCH/AVOID;
+`UNDERFLAG_gc_opinion`→AVOID (EDGAR 10-K auditor going-concern opinion — the fundamentals screen
+missed a name the auditor already flagged). Short interest only *corroborates* an existing
+AVOID — it never flags on its own. If asked for an investment call, add a one-line risk-overlay
+(distress dominates: a cheap stock going bankrupt is not a buy) and defer the buy/sell verdict to
+`portfolio-analysis` and the fair value to `fair-value-analyst`.
 
 ---
 
 ## 2. Single-ticker analysis (the core loop)
 
-TWO commands are the core distress/fraud read; run each as its own shell (the `cd` must prefix each
-since shell state doesn't persist across separate Bash calls):
+FOUR commands; run each in its own shell (`cd` must prefix each — shell state does not persist):
 
 ```bash
 DIR=/Users/prasadmenon/Claude/StockAffirmProject/stockaffirmtodos/analyst_agent
-cd $DIR && python3 distress_screen.py TICKER     # 1) distress/fraud/recovery bucket + the 7-model read
-cd $DIR && python3 calibrate.py --ticker TICKER  # 2) DIRECT-API ground truth (news/short/raise) + verdict — inspect-only, no ledger write
+cd $DIR && python3 calibrate.py --ticker TICKER   # Python screen + EDGAR flags + API overlay
+cd $DIR && python3 massive_api.py TICKER           # full article corpus (title + desc body text)
+cd $DIR && python3 edgar_api.py TICKER             # 10-K excerpts: going-concern, MW, MD&A
+cd $DIR && python3 data_loader.py TICKER           # multi-year fundamentals for grounding
 ```
 
-Interpret:
-1. **Distress** (`distress_screen.py`): the bucket + reasons. Honor the false-positive taxonomy in
-   `DISTRESS_AGENT.md` §7 — never trust one model alone. If it reports no cached data (too new /
-   delisted), say so: `<TICKER> — no cached fundamentals; cannot screen (needs ≥2y data).`
-2. **Direct-API validation** (`calibrate.py --ticker`): does live news/short-interest/recent-raise
-   CORROBORATE or CONTRADICT the bucket? This is the ground truth that resolves stale-snapshot
-   false positives (a funded cash-burner that just raised; a real going-concern the cache missed).
+With those four data layers in hand, run the §1 investigation loop on every notable signal and
+output the JSON verdict. If `calibrate.py` reports SKIP_no_data or SKIP_lt2y, return:
+`{"ticker":"TICKER","bucket":"SKIP","error":"no cached fundamentals — needs ≥2y data"}`
 
-Then write the §1 verdict. If the API contradicts the screen materially, say so explicitly and
-trust the live evidence — then consider whether it's a one-off or a calibration gap (§4).
+If the live API contradicts the screen materially, trust the live evidence and say so in `narrative`.
+Flag it as a potential calibration gap (§4) if it looks systematic.
 
 **Optional valuation overlay** (sibling capability — do NOT duplicate it): if the user also wants
 fair value / over-under-valued, run `python3 analyst.py TICKER` (Morningstar-style DCF, moat,
@@ -202,9 +244,19 @@ net-cash names are demoted to a forensic watchlist. Cash-flow statements are cac
 / FCF are exact. **A name is AVOID only when multiple corroborating signals agree** — one model
 alone false-flags healthy names (NVDA, ABBV, ADP, utilities, lenders, homebuilders, SaaS).
 
-**Direct APIs** (`massive_api.py`, Massive): `news` (going-concern/Ch11/SEC/restatement, law-firm
-spam filtered), `short-interest` (days-to-cover), capital-raise detection. These are the live
-ground truth the fundamentals snapshot can't see.
+**Direct APIs** (`massive_api.py`, Massive): `news` (full focused article corpus — no cap, with body
+text; going-concern/Ch11/SEC/restatement, law-firm spam filtered), `short-interest` (days-to-cover),
+capital-raise detection. These are the live ground truth the fundamentals snapshot can't see.
+
+**EDGAR 10-K signals** (`edgar_api.py`): auditor going-concern opinion, identified material weakness,
+debt covenant violations — extracted from the full 10-K text (50MB ceiling, 7-day cache). CIK via
+SEC `company_tickers.json`; filing URL from `data.sec.gov/submissions/`; keywords narrow-scoped to
+exclude audit-methodology boilerplate (e.g. "assessing the risk that a material weakness") and
+regulatory language (FCPA compliance ≠ covenant breach). `grounding_source = "edgar_10k"`.
+
+**Monthly price history** (`data_loader.price_history()`): AV `TIME_SERIES_MONTHLY_ADJUSTED`,
+24-month adj_close, cached. Grounds LLM price claims that were previously training-data guesses.
+`grounding_source = "av_price_data"`.
 
 ---
 
@@ -221,30 +273,38 @@ ground truth the fundamentals snapshot can't see.
 
 ---
 
-## 7. Direct-API quick reference (Massive)
+## 7. Direct-API quick reference
 
-Key auto-loaded from `stockaffirm/.env` (`API_KEY`). `python3 massive_api.py TICKER` dumps the read.
-- `news(ticker)` — historical headlines (richer than the 2-week engine cache).
+**Massive** (key from `stockaffirm/.env` `API_KEY`). `python3 massive_api.py TICKER` dumps the read.
+- `news(ticker)` — full focused article corpus (ALL articles, no cap; each with title + body text).
 - `short_interest(ticker)` — latest `days_to_cover` (≥7 = elevated, a distress/squeeze tell).
 - `event_scan(ticker)` — fused read: `api_distress`, `api_fraud`, `api_high_short`,
-  `api_recent_raise`, with the matched headlines. Law-firm class-action spam is filtered as noise.
+  `api_recent_raise`, + `all_focused_articles` (complete corpus with descriptions). Law-firm
+  class-action spam filtered. Returns `n_focused_articles` count.
+
+**SEC EDGAR** (no API key required). `python3 edgar_api.py TICKER` dumps the read.
+- `edgar_10k_signals(ticker)` — going-concern flag + keyword excerpts, material-weakness flag
+  (narrowed to positive findings only — excludes auditor-methodology boilerplate), covenant-risk
+  flag (narrowed to actual debt covenant terms — excludes FCPA/regulatory language), MD&A excerpt.
+  Returns `filing_date`, `text_truncated` (True only if file >50MB, effectively never).
+  7-day SQLite cache in `av_cache.db`.
+
+**Alpha Vantage** (key from `stockaffirm/.env` `ALPHAVANTAGE_API_KEY`).
+- `price_history(ticker, months=24)` — monthly adj_close via `TIME_SERIES_MONTHLY_ADJUSTED`.
+  Cached per-ticker. Grounds stock-price claims that would otherwise be training-data guesses.
 
 ---
 
 ## 8. Output discipline
-- Lead with the **ACTION** and the one-line why; then the evidence; then caveats.
-- Quote the **live API evidence** when it matters (a real going-concern headline, days-to-cover, a raise).
-- State uncertainty honestly. Distinguish *insolvency* vs *cash-burn*; *fraud* vs *forensic watchlist*.
-- Never present a fundamentals-only fraud flag as proof — it's "investigate," confirmed by §7/news.
-- **Every factual claim must be grounded or flagged** (see §1 Grounding Protocol).
-  Training knowledge is valid for recognizing what to look for, not for asserting facts.
-  If you cannot ground a claim, say "I cannot confirm this from available data" — that is correct.
-- **The LLM is the primary analyst; the Python screen is secondary evidence.**
-  - When an LLM investigation runs (explain=true / Mode 2 subagent), the LLM's bucket is the
-    `effective_bucket`. Python flags are `screen_bucket` / `screen_flags` — the starting hypothesis.
-  - The LLM MAY disagree with the Python screen; it must explain why in the narrative.
-  - Use TRAINING-FLAG buckets when you cannot ground a risk from available data — that is more
-    honest than forcing a AVOID or CLEAR you cannot back with data.
+- **Single-ticker: output the §1 JSON exactly. No prose before or after it.**
+- **List / batch: one JSON object per ticker, newline-separated, or a JSON array.**
+- The Python screen is the starting hypothesis. You are the primary analyst — investigate every flag, then issue YOUR OWN bucket. You MAY disagree with the screen; say why in `narrative`.
+- Every `grounded_claims` entry must have a `grounding_source` that is not `training_only`.
+- Every `training_flags` entry must have `grounding_source = "training_only"` and a specific `investigate` step.
+- State uncertainty honestly. A fundamentals-only fraud flag is `TRAINING-FLAG(fraud)` or `"investigate"` — not `AVOID(fraud)` — unless live news/API confirms it.
+- Distinguish `AVOID(insolvency)` vs `AVOID(cash_burn)` — they are different risks requiring different investor action.
+- Never assert a stock price move without citing a specific date + adj_close from `av_price_data`.
+- Never assert a business/strategy fact from training without checking the article corpus first.
   - When no LLM runs (explain=false / batch), `effective_bucket` falls back to Python screen.
   - Structured output fields: `grounded_claims`, `training_flags`, `unresolved` — not buried in prose.
 
@@ -268,3 +328,10 @@ what the direct-API layer is for); interest expense not separately disclosed (co
 Altman/Beneish/Ohlson structurally invalid for Financials/REITs/Utilities/float businesses (suppressed,
 judged on cash flow); Beneish/Ohlson have real false-positive rates — multi-signal + API corroboration
 mitigate but the fraud list is "investigate," not a verdict.
+
+EDGAR 10-K is single-filing vintage — the most recent annual; an interim amendment (10-K/A) or
+mid-year material weakness disclosure (8-K) won't appear here. Going-concern language is in the
+auditor's report (not management) — if the filing is old (>7-day cache), re-fetch. EDGAR CIK lookup
+uses `company_tickers.json` which may lag newly-listed tickers. `edgar_10k_signals` returns
+`None` if the ticker is unknown to EDGAR or the filing download fails; treat as absence of signal,
+not as CLEAR.

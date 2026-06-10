@@ -161,27 +161,42 @@ def analyze_ticker(ticker, explain=False, model=None):
             "n_news":           result.get("n_news", 0),
             "n_bk_events":      result.get("n_bk_events", 0),
             "n_fraud_events":   result.get("n_fraud_events", 0),
+            # EDGAR 10-K signals (from auditor's report, not fundamentals)
+            "edgar_gc":         bool(result.get("edgar_gc")),    # going-concern opinion
+            "edgar_mw":         bool(result.get("edgar_mw")),    # identified material weakness
+            "edgar_cov":        bool(result.get("edgar_cov")),   # debt covenant violation
         },
         "explanation": None,    # convenience alias for llm_verdict.narrative
     }
 
     if explain and _llm_client and _llm_client.active:
-        # Fetch all grounding data for LLM investigation
+        # Fetch all grounding data for LLM investigation.
+        # Each source is guarded independently — a rate-limit or missing key on one
+        # must not silence the others. The LLM degrades gracefully on any None.
         full_hist     = None
         api_raw       = None
         price_hist    = None
         edgar_signals = None
+        from data_loader import load_fundamentals, full_history, price_history
+        from massive_api import event_scan
+        from edgar_api  import edgar_10k_signals
         try:
-            from data_loader import load_fundamentals, full_history, price_history
-            from massive_api import event_scan
-            from edgar_api  import edgar_10k_signals
-            fund          = load_fundamentals(ticker)
-            full_hist     = full_history(fund) if fund else None
-            price_hist    = price_history(ticker, months=24)     # 2yr monthly price
-            api_raw       = event_scan(ticker)                    # news + short interest
-            edgar_signals = edgar_10k_signals(ticker)            # 10-K: going-concern, MW, covenants
+            fund      = load_fundamentals(ticker)
+            full_hist = full_history(fund) if fund else None
         except Exception:
-            pass   # LLM still runs with whatever it has
+            pass   # financials unavailable — LLM works without them
+        try:
+            price_hist = price_history(ticker, months=24)
+        except Exception:
+            pass   # price data unavailable — stock price claims go to training_flags
+        try:
+            api_raw = event_scan(ticker)
+        except Exception:
+            pass   # news unavailable — LLM works without corpus
+        try:
+            edgar_signals = edgar_10k_signals(ticker)
+        except Exception:
+            pass   # 10-K unavailable — edgar_10k grounding not available this run
 
         client = _llm_client if not model else \
                  type(_llm_client)(provider=_llm_client.provider, model=model)

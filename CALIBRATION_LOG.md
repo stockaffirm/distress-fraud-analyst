@@ -145,6 +145,71 @@ maps 1:1 to a Supabase table if that rule is lifted.
 
 <!-- next entries appended by the loop as systematic patterns are found -->
 
+### 4-layer grounding architecture (June 2026)
+
+Four systematic additions to the LLM investigation layer (`llm_client.py`, `data_loader.py`,
+`massive_api.py`, new `edgar_api.py`) to eliminate training-data hallucination from grounded claims.
+No changes to fundamentals screen logic (`distress_screen.py`).
+
+**1. Stock price grounding (`data_loader.price_history`)**
+- **Problem:** LLM was citing stock price ranges from training data ("Oracle $80→$345" was
+  fabricated; actual range $58→$279 per AV). Any price claim without a data source is a hallucination.
+- **Fix:** Added `price_history(ticker, months=24)` to `data_loader.py` using AV
+  `TIME_SERIES_MONTHLY_ADJUSTED`. Returns 24 months of monthly adj_close, newest-first. Cached
+  per-ticker in `av_price_cache` table (SQLite). Wired into `llm_client._build_prompt()` as a
+  PRICE HISTORY block. `grounding_source = "av_price_data"`.
+- **Result:** All LLM price claims now cite specific date + adj_close from the 24-month feed.
+  Self-check rule updated: price claims require `av_price_data` grounding or TRAINING-FLAG.
+
+**2. Full article corpus (`massive_api.py`)**
+- **Problem:** The news corpus was capped at 30 articles and lacked body text. LLM was instructed
+  to "search for X" — creating training-data confirmation bias (it would look for what it expected
+  to find, not what was actually there). Oracle had 126 focused articles; only 30 were passed.
+- **Fix:** Removed the `[:30]` cap. All focused articles are now passed, each with `desc` (body
+  text, 300 chars from the Massive API). New instruction: "read all articles, discover freely —
+  do NOT search for expected terms." `all_focused_articles` field added; `recent_focused_headlines`
+  kept as backward-compat alias.
+- **Result:** Richer news signal; LLM discovers things it didn't know to look for (e.g. new product
+  launches, regulatory approvals, management changes) alongside distress signals.
+
+**3. EDGAR 10-K signals (`edgar_api.py` — new module)**
+- **Problem:** Going-concern opinions, identified material weaknesses, and covenant violations sit in
+  the 10-K auditor's report — authoritative, public, cacheable — but were completely absent from
+  the LLM's grounding data. LLM was either guessing from training or leaving these blank.
+- **Fix:** New `edgar_api.py` module. Chain: `company_tickers.json` (CIK lookup) →
+  `data.sec.gov/submissions/CIK{:010d}.json` (latest 10-K accession + primaryDocument URL) →
+  full document download (50MB ceiling — real filings never hit this) → keyword extraction.
+  Signals extracted: `going_concern_flag`, `material_weakness_flag`, `covenant_risk_flag`,
+  `mda_excerpt`. 7-day SQLite cache in `av_cache.db`. `grounding_source = "edgar_10k"`.
+- **False positive fixes discovered during ORCL/BYND testing:**
+  - **ORCL material weakness FP:** "assessing the risk that a material weakness exists" is standard
+    PwC/Big-4 audit methodology boilerplate — it appears in EVERY clean audit, not just MW findings.
+    **Fix:** Added `_MATERIAL_WEAKNESS_EXCLUDE` list to `_find_excerpts()`. Narrowed
+    `_MATERIAL_WEAKNESS_KWS` to only positive-finding phrases ("identified a material weakness",
+    "has a material weakness", etc.).
+  - **BYND covenant FP:** "not in compliance with FCPA" and "not in compliance with foreign law"
+    triggered `covenant_risk_flag=True`. These are regulatory compliance disclosures, not debt
+    covenant violations. **Fix:** Removed "not in compliance with" and "failed to maintain" from
+    `_COVENANT_KWS`; kept only specific debt terms ("event of default", "forbearance agreement",
+    "debt covenant", "covenant waiver", "cross-default", etc.).
+- **Result:** `edgar_10k_signals` gives auditor-grounded going-concern and material weakness signal
+  that the fundamentals screen cannot see. Wired into `llm_client._build_prompt()` as an EDGAR
+  10-K SIGNALS block with flags, keyword excerpts, and MD&A excerpt.
+
+**4. calibrate.py EDGAR wiring**
+- `process_one()` now calls `_edgar_signals(ticker)` and adds `edgar_gc`, `edgar_mw`, `edgar_cov`
+  (0/1 flags) to every ledger row. COLS updated to include these three fields.
+- `verdict_for(res, e, edgar=None)` now checks `edgar.going_concern_flag` for non-AVOID buckets:
+  if the auditor issued a going-concern opinion and the screen returned CLEAR/WATCH/DISTRESSED-
+  RECOVERABLE, verdict = `UNDERFLAG_gc_opinion`.
+- `effective_bucket()` maps `UNDERFLAG_gc_opinion` → `AVOID`: "promoted — EDGAR 10-K auditor
+  going-concern opinion found; screen missed it."
+
+**Calibration lesson:** Two classes of EDGAR false positives now documented and fixed.
+Re-run `calibrate.py --ticker ORCL` and `--ticker BYND` to verify `edgar_mw=0` and
+`edgar_cov=0` for both (post-fix). Bump `LOGIC_VERSION` in `state_db.py` after verifying to
+trigger re-validation of EDGAR-flagged names in the durable loop.
+
 - **"Regains compliance" recoveries miscounted as distress.** A headline can contain a distress
   keyword ("minimum bid price") while announcing the OPPOSITE — the company *regained* compliance
   (AHG/DARE/OCG/SQFT). **Fix:** `BK_POSITIVE` guard + a "regains…compliance" co-occurrence check in

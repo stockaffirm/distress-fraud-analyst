@@ -15,3 +15,5 @@ _When a brain doc changes, the distress-fraud-analyst agent md manifest is regen
 - 2026-06-09 12:11 — synced; changed: AGENT_PLAYBOOK.md
 - 2026-06-09 21:56 — synced; changed: AGENT_PLAYBOOK.md
 - 2026-06-09 21:56 — method-doc edit: AGENT_PLAYBOOK.md added §1 Grounding Protocol ([GROUNDED]/[TRAINING-FLAG] labels) + §8 'Python decides bucket, LLM explains' → added grounding contract to agent md 'The verdict' section.
+- 2026-06-09 22:11 — synced; changed: AGENT_PLAYBOOK.md
+- 2026-06-09 22:11 — synced; changed: AGENT_PLAYBOOK.md (271 lines, hash 7f3cbd690e45) — LLM-primary restructure already mirrored in agent md verdict section; manifest auto-updated; no additional edit required.

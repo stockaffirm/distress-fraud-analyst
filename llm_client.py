@@ -233,13 +233,27 @@ OUTPUT FORMAT — return ONLY the JSON object below (no prose wrapper, no markdo
   "bucket": "<one of the bucket values listed above>",
   "confidence": "high|medium|low",
   "one_line_risk": "<what would hurt the investor, or why it is safe — one sentence>",
+
+  "investigation": [
+    {
+      "signal": "<the specific Python screen flag or anomaly — e.g. 'going_concern_flag=True', 'Beneish M=-1.2 above -1.78 threshold', 'cash runway 8 months', 'DSRI=1.8 spike'>",
+      "hypotheses": [
+        "(a) <most likely explanation>",
+        "(b) <alternative explanation>"
+      ],
+      "lookup": "<specific fields, articles, or edgar excerpts you checked>",
+      "evaluate": "<what the data showed — state 'hypothesis (a) CONFIRMED' or 'hypothesis (b) REFUTED' explicitly>",
+      "label": "<GROUNDED: field=value, fy=YYYY  OR  TRAINING-FLAG: exact reason>"
+    }
+  ],
+
   "grounded_claims": [
     {
       "claim": "<factual statement confirmed from data or news>",
-      "grounding_source": "av_financial|calculated|massive_news|av_news",
-      "field": "<data field name(s), or headline title if news-grounded>",
-      "value": "<actual value(s) — number from financials, or headline date if news>",
-      "fy": <fiscal year as integer if financial, null if news-grounded>
+      "grounding_source": "av_financial|calculated|av_price_data|edgar_10k|massive_news|av_news",
+      "field": "<data field name(s), headline title, or edgar flag name>",
+      "value": "<actual value(s) — number from financials, price+date, edgar flag value, or headline date>",
+      "fy": "<fiscal year as integer if financial, null if news/price/edgar-grounded>"
     }
   ],
   "training_flags": [
@@ -262,17 +276,24 @@ OUTPUT FORMAT — return ONLY the JSON object below (no prose wrapper, no markdo
   "narrative": "<2-4 sentences connecting the fundamentals to the live signals; explain the bucket choice; cite grounding sources>"
 }
 
+investigation[] rules:
+  - One entry per notable signal — every Python screen flag, every EDGAR signal, any financial anomaly.
+  - Work through them highest-risk first.
+  - evaluate MUST explicitly say "hypothesis (a) CONFIRMED" or "hypothesis (b) REFUTED" — not just describe.
+  - label is exactly one of the two forms shown.
+
 confidence rules:
   "high"   — all major claims are av_financial / calculated / news-grounded; training_only items minor or zero
   "medium" — some claims grounded; one or more significant training_only items present
   "low"    — primarily training_only; limited data confirmation; Python screen is the better primary signal
 
 SELF-CHECK before returning:
-  1. Every grounded_claim has a grounding_source that is NOT "training_only"
-  2. Every training_flag has grounding_source = "training_only" AND a specific how_to_ground
-  3. No business/strategy claim is in grounded_claims with grounding_source = "training_only"
+  1. investigation[] has one entry for EVERY notable signal (not just the clearest ones)
+  2. Every grounded_claim has a grounding_source that is NOT "training_only"
+  3. Every training_flag has grounding_source = "training_only" AND a specific how_to_ground
+  4. No business/strategy claim is in grounded_claims with grounding_source = "training_only"
      (training knowledge about strategy → training_flags, never grounded_claims)
-  4. Stock price moves: if PRICE HISTORY is provided → av_price_data (grounded).
+  5. Stock price moves: if PRICE HISTORY is provided → av_price_data (grounded).
      If no price history block → training_only (put in training_flags).
      Never state a specific price move without citing a specific date from price data.
 
@@ -553,7 +574,7 @@ REMEMBER: search RECENT FOCUSED HEADLINES before writing any business/strategy c
             f"  material_weakness_flag:{mw}\n"
             f"  covenant_risk_flag:    {cov}\n"
             f"  text_truncated:        {trunc}"
-            f"  {'(document > 2MB — auditor report in tail may not be present)' if trunc else ''}\n"
+            f"  {'(document exceeded 50MB safety ceiling — signals from tail may be missing)' if trunc else ''}\n"
             f"  edgar_url:             {edgar_signals.get('edgar_url')}\n"
         )
         for ex in (edgar_signals.get("going_concern_excerpts") or []):
@@ -634,9 +655,9 @@ class LLMClient:
                                price_hist=price_hist, edgar_signals=edgar_signals)
         if self.provider == "anthropic":
             return _call_anthropic(prompt, model=self.model or "claude-3-5-sonnet-20241022",
-                                   max_tokens=3000)
+                                   max_tokens=4000)
         if self.provider == "openai":
-            return _call_openai(prompt, model=self.model or "gpt-4o", max_tokens=3000)
+            return _call_openai(prompt, model=self.model or "gpt-4o", max_tokens=4000)
         return None, f"unknown provider: {self.provider}"
 
     @property

@@ -10,7 +10,7 @@ mapping, and the validation protocol are below.
 
 ---
 
-## 0. Architecture — three layers (read this first)
+## 0. Architecture — four layers (read this first)
 
 The single most important design fact, learned from an adversarial audit (§9): **a fundamentals
 snapshot produces CANDIDATES; news/events CONFIRM them.** A pure-fundamentals screen cannot
@@ -21,18 +21,28 @@ one-time non-cash accrual from manipulation. So the system is layered:
   Layer 1  FUNDAMENTALS  (distress_screen.py)  — whole universe, fast, offline
            7 models on cached financials -> candidate buckets
                      |
-  Layer 2  NEWS CACHE   (distress_news.py)     — fast, offline, ~2-week window
-           scan engine news.jsonl for going-concern / Ch11 / SEC / restatement
-           -> corroborates (boosts confidence) or escalates a borderline name
+  Layer 2  DIRECT-API    (massive_api.py + edgar_api.py)   — live, cached per-ticker
+           massive_api : full focused article corpus (ALL headlines + body text),
+                         short interest (days-to-cover), capital-raise detection
+           edgar_api   : SEC 10-K auditor going-concern opinion, material weakness,
+                         covenant violations (7-day cache; full-text keyword extraction)
+           -> corroborates (boosts confidence), escalates, or overrides the bucket
                      |
-  Layer 3  LIVE AUDIT   (web / AlphaVantage NEWS_SENTIMENT, on-demand per name)
-           historical news + current filings -> CONFIRM or CLEAR each AVOID
+  Layer 3  LLM INVESTIGATION (llm_client.py, explain=True)  — on-demand per name
+           4 grounding sources: av_financial (fundamentals) · av_price_data (24mo monthly
+           prices) · massive_news (complete article corpus with descriptions) · edgar_10k
+           (going-concern/MW/covenant + MD&A) -> structured verdict with grounded claims
+                     |
+  Layer 4  LIVE AUDIT   (web / on-demand deep-dive)
+           ad-hoc web research for the highest-stakes names
            reference impl: the `distress-avoid-audit` workflow (§9)
 ```
 
-Layer 1 is exhaustive but blind to events; Layer 2 is event-aware but thin (the cache is a
-~2-week law-firm-spam-heavy window); Layer 3 is the real confirmation step and the workhorse
-for the final list. **Do not ship an AVOID-fraud verdict on Layer 1 alone — run Layer 3.**
+Layer 1 is exhaustive but blind to events; Layer 2 is the primary live cross-check (handles the
+routine case: funded cash-burner, news-confirmed going-concern, recent raise); Layer 3 is the
+deep analytical layer with full grounding (prices, complete news, 10-K); Layer 4 is for the
+highest-stakes ad-hoc confirmations. **Do not ship an AVOID-fraud verdict on Layer 1 alone — run
+at minimum Layer 2, ideally Layer 3.**
 
 ---
 
@@ -58,9 +68,12 @@ might fail a trial is *not* the same risk as an over-levered retailer going unde
 |---|---|
 | `distress_screen.py` | Layer-1 engine — `screen(ticker, ctx, hist, news=None)` returns the bucket dict |
 | `distress_batch.py` | runs the whole universe (Layer-1 only) → `DISTRESS_SCREEN.csv` + `DISTRESS_REPORT.md` |
-| `data_loader.py` | read-only loader — `full_history(fund)` (income+balance+**cash-flow**), `load_context` |
-| **`massive_api.py`** | **Layer-2 DIRECT API** — `event_scan(ticker)`: live news events, short interest, recent raises |
-| **`calibrate.py`** | per-ticker validate→bucket→**effective_bucket** (screen ∪ API); `--ticker/--review` |
+| `data_loader.py` | read-only loader — `full_history(fund)` (income+balance+**cash-flow**); `price_history(ticker, months=24)` (AV monthly prices) |
+| **`massive_api.py`** | **Layer-2 DIRECT API** — `event_scan(ticker)`: full article corpus (no cap, with body text), short interest, recent raises |
+| **`edgar_api.py`** | **Layer-2 EDGAR 10-K** — `edgar_10k_signals(ticker)`: going-concern, material weakness, covenant risk (7-day cache, full-text) |
+| **`llm_client.py`** | **Layer-3 LLM** — `explain(ticker, result, ...)`: 4-source grounded prompt → structured verdict |
+| **`api_server.py`** | HTTP API server — `POST /analyze` (explain=True triggers Layer-3) + `/analyze/batch` |
+| **`calibrate.py`** | per-ticker validate→bucket→**effective_bucket** (screen ∪ API ∪ EDGAR); `--ticker/--review` |
 | **`state_db.py`** | durable SQLite status table (`tickers`) — the resumable "what to (re)process" store |
 | **`loop_runner.py`** | head-less, time-budgeted, cron-callable runner — processes all DUE tickers |
 | `distress_news.py` | the older 2-week-cache news scan (Layer-2 fallback; superseded by `massive_api.py`) |
@@ -87,21 +100,31 @@ python3 distress_batch.py --limit 300            # quick sample
 - **`recommendations.csv`** (`.../output/<date>/recommendations.csv`) — sector, market cap,
   `piotroski_f`, `quality_delta_yoy`, plus the engine's own `sentiment_score`, `risk_flags`,
   `eq_warn`, `ca_warn` (available for fusion).
-- **Massive API (DIRECT, now wired — `massive_api.py`)** — the live Layer-2 ground truth, key from
-  `stockaffirm/.env` (`API_KEY`). Endpoints used: `/v2/reference/news?ticker=` (historical
-  headlines → distress/fraud/raise events) and `/stocks/v1/short-interest` (days-to-cover). The
-  whole 5,022-name calibration ran on this. Precision guards in `event_scan`: **focus filter**
-  (primary ticker only — tags are subject-ordered), **law-firm-spam filter**, **recovery guard**
-  ("regains compliance" ≠ distress), and **single-vs-≥2-article** weighting.
+- **Massive API (DIRECT — `massive_api.py`)** — the live Layer-2 ground truth, key from
+  `stockaffirm/.env` (`API_KEY`). Endpoints: `/v2/reference/news?ticker=` (full focused article
+  corpus — ALL articles, no 30-article cap; each with `title` + `desc` body text → distress/fraud/
+  raise events) and `/stocks/v1/short-interest` (days-to-cover). The whole 5,022-name calibration
+  ran on this. Precision guards: **focus filter** (primary ticker only), **law-firm-spam filter**,
+  **recovery guard** ("regains compliance" ≠ distress), **single-vs-≥2-article** weighting.
+- **SEC EDGAR 10-K (DIRECT — `edgar_api.py`)** — auditor-issued signals from the latest annual
+  filing. Chain: `company_tickers.json` (CIK) → `data.sec.gov/submissions/CIK{:010d}.json`
+  (latest 10-K accession + primaryDocument URL) → full document download (50MB ceiling) →
+  keyword extraction. Signals: `going_concern_flag` (auditor language, not management MD&A),
+  `material_weakness_flag` (narrowed to positive-finding phrases — excludes boilerplate "assessing
+  the risk that a material weakness"), `covenant_risk_flag` (narrowed to debt covenant terms —
+  excludes FCPA/regulatory language). 7-day SQLite cache.
+- **Alpha Vantage monthly prices (`data_loader.price_history()`)** — `TIME_SERIES_MONTHLY_ADJUSTED`
+  24-month adj_close, cached per-ticker. Grounds LLM stock-price claims (`grounding_source=
+  "av_price_data"`).
+- **Alpha Vantage `NEWS_SENTIMENT`** — wired in `llm_client.py` fallback news path (when Massive is
+  unavailable).
 - **News cache** `stockaffirm/cache/data/raw/news.jsonl` (`distress_news.py`) — the older 2-week
   fallback, superseded by the Massive API above (it was ~2-week, law-firm-spam-heavy).
 
 **NOT yet used (optional future):**
-- **AlphaVantage `NEWS_SENTIMENT`** — an alternative/additional historical-news feed; `event_scan`
-  returns a shape any feed can match.
 - **Massive consensus/Benzinga ratings** — needs a plan upgrade (returns NOT_AUTHORIZED today).
 - **Live web-search agent** (the `distress-avoid-audit` workflow) — heavier confirmation for the
-  highest-stakes names; the Massive news feed covers the routine case far more cheaply.
+  highest-stakes names; the Massive news feed + EDGAR covers the routine case far more cheaply.
 
 > **What's Python vs agent:** Layers 1+2 (the screen, the API scan, verdicts, the effective_bucket,
 > the state DB, `loop_runner.py`) are **100% deterministic Python** — they processed all 5,022 with
@@ -270,9 +293,14 @@ news-confirmed names to a hard AVOID; treat the rest as "investigate."
   distorted); coverage there is inherently weaker (banks need capital ratios not in the cache).
 - **Single-vintage annuals** — the FY in the cache, not point-in-time as-reported; a fresh quarter
   or a just-closed equity raise (which the snapshot can't see) changes the read. This is exactly
-  why Layer 3 exists.
+  why Layer 2 (Massive + EDGAR) exists.
 - **Beneish/Ohlson** have real false-positive rates; mitigated by multi-signal corroboration, the
   accruals + cash-conversion necessary conditions, sector/float guards, and the cash-generative
   veto — but a fundamentals-only fraud flag is a "look harder" list, never a verdict.
-- **News cache is a thin (~2-week) law-firm-spam-heavy window** — Layer 2 catches the occasional
-  real event (a restatement) but the real news layer is Layer 3 (live web / AV).
+- **News cache is a thin (~2-week) law-firm-spam-heavy window** — Layer 3 now uses the Massive full
+  article corpus (no cap); for the deepest confirmations use the Layer-4 web audit.
+- **EDGAR 10-K single-filing vintage** — the most recent annual; mid-year 8-K material weakness
+  disclosures and 10-K/A amendments won't appear. `edgar_10k_signals` returns `None` if the ticker
+  is unknown to EDGAR or the download fails — treat as absence of evidence, not as CLEAR. Going-
+  concern language must appear in the auditor's opinion section to trigger the flag; management MD&A
+  softer language is captured separately in the `mda_excerpt` field.
