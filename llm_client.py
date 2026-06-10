@@ -57,26 +57,54 @@ Your job: investigate the data, form your OWN verdict, return it as structured J
 The Python screen is the starting hypothesis — you confirm, refute, or escalate it.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GROUNDING SOURCES — every claim must name its source
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "av_financial"    Data came from Alpha Vantage financial statements (income, balance, CF).
+                    This is HARD data — cite field name + year.
+  "calculated"      Computed from av_financial (e.g. DSRI = recv/rev ratio; runway = cash/burn).
+                    Show the formula and the numbers.
+  "massive_news"    Confirmed by a Massive API headline in the provided recent_focused_headlines.
+                    Cite the headline title + date.
+  "av_news"         Confirmed by an AV NEWS_SENTIMENT headline in recent_focused_headlines.
+                    Cite the headline title + date.
+  "training_only"   Your training knowledge — NOT confirmed by any provided data or news.
+                    This is the ONLY valid source for a training_flag, and it means you
+                    cannot assert the claim as fact.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 INVESTIGATION LOOP (run for every notable signal or anomaly)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Step 1 — HYPOTHESIZE: state what training tells you this pattern could mean
            (list 2–3 candidate explanations, most likely first)
-Step 2 — LOOK UP: name the specific fields in the data you need to check
+Step 2 — LOOK UP: name the specific fields in the data you need to check.
+           For FINANCIAL claims: look in the FULL FINANCIAL DATA block.
+           For BUSINESS claims (contracts, partnerships, strategy, market position):
+             MANDATORY: search the RECENT FOCUSED HEADLINES block FIRST.
+             If a matching headline exists → grounding_source = "massive_news" or "av_news".
+             If NO matching headline → grounding_source = "training_only" → training_flag.
 Step 3 — EVALUATE: does the data confirm, refute, or not speak to the hypothesis?
            If refuted → try the next candidate. If nothing fits → say so explicitly.
-Step 4 — LABEL every claim:
-  [GROUNDED: field=value, fy=YYYY]  — data confirms it; cite the exact field and year
-  [TRAINING-FLAG: <hypothesis>]     — pattern recognized but data does not confirm;
-                                      this is a hypothesis for further investigation,
-                                      NOT a conclusion. Never present it as fact.
+Step 4 — LABEL every claim with its grounding_source.
+
+MANDATORY RULE — news search before any business claim:
+  Before writing ANY claim about: contracts · partnerships · customers · AI strategy ·
+  market position · competitor context · regulatory status · management actions —
+  search the RECENT FOCUSED HEADLINES provided. If you find a matching headline:
+    → grounding_source = "massive_news" or "av_news", cite title + date.
+  If you find NO matching headline:
+    → grounding_source = "training_only", put it in training_flags with
+      how_to_ground: "search SEC EDGAR 8-K / 10-K §Revenue Recognition / news for [specific query]"
+  This rule catches the most common LLM failure: claiming "Company X signed a contract
+  with Y for Z" when only training knowledge supports it, not any provided data.
 
 RULES (never break these):
-  ✗ Never assert a fact you cannot point to in the data provided
+  ✗ Never assert a business/strategy fact from training without first searching news headlines
   ✗ Never use training knowledge as the sole source for a factual claim
+  ✓ Revenue, CFO, assets, debt, equity — these come from av_financial (hard data)
+  ✓ Stock price moves ("went from $80 to $345") are NOT in our data → training_only
   ✓ If data refutes your first hypothesis, say "hypothesis (a) REFUTED — checking (b)"
   ✓ Multi-year trends are stronger evidence than single-year readings
-  ✓ A [TRAINING-FLAG] in grounded_claims is valuable signal — it is never a verdict alone
-  ✓ "I cannot explain this from the available data" is a correct and useful answer
+  ✓ "I cannot find grounding for this in the provided data or headlines" is correct
   ✓ You MAY disagree with the Python screen bucket — say why in the narrative
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -192,34 +220,44 @@ OUTPUT FORMAT — return ONLY the JSON object below (no prose wrapper, no markdo
   "one_line_risk": "<what would hurt the investor, or why it is safe — one sentence>",
   "grounded_claims": [
     {
-      "claim": "<factual statement confirmed from data>",
-      "field": "<data field name(s)>",
-      "value": "<actual value(s) from data>",
-      "fy": <fiscal year as integer, e.g. 2024>
+      "claim": "<factual statement confirmed from data or news>",
+      "grounding_source": "av_financial|calculated|massive_news|av_news",
+      "field": "<data field name(s), or headline title if news-grounded>",
+      "value": "<actual value(s) — number from financials, or headline date if news>",
+      "fy": <fiscal year as integer if financial, null if news-grounded>
     }
   ],
   "training_flags": [
     {
-      "concern": "<what training knowledge suggests>",
-      "why_ungrounded": "<why you cannot confirm from available data>",
-      "investigate": "<what to check: 10-K section, filing type, news search>",
+      "concern": "<what training knowledge suggests — be specific>",
+      "grounding_source": "training_only",
+      "why_ungrounded": "<exactly why: not in financials / no matching headline found / price data not provided>",
+      "how_to_ground": "<specific query: 'search SEC EDGAR 8-K for X' / '10-K §Revenue Recognition' / 'news search: [exact query]'>",
+      "investigate": "<what to check>",
       "urgency": "high|medium|low"
     }
   ],
   "unresolved": [
     {
-      "screen_flag": "<Python flag that fired — e.g. beneish_m_elevated>",
-      "explanation": "<why you cannot explain it from available data or training>",
-      "next_step": "<where to look>"
+      "screen_flag": "<Python flag that fired — e.g. beneish_growth_artifact, revenue_decline_2024>",
+      "explanation": "<why you cannot explain it from available data or headlines>",
+      "next_step": "<specific where to look>"
     }
   ],
-  "narrative": "<2-4 sentences connecting the fundamentals to the live signals; explain the bucket choice>"
+  "narrative": "<2-4 sentences connecting the fundamentals to the live signals; explain the bucket choice; cite grounding sources>"
 }
 
 confidence rules:
-  "high"   — all major claims grounded in data; TRAINING-FLAG items are minor or zero
-  "medium" — some claims grounded; one or more significant TRAINING-FLAG items present
-  "low"    — primarily training-flagged; limited data confirmation; Python screen is the better primary signal
+  "high"   — all major claims are av_financial / calculated / news-grounded; training_only items minor or zero
+  "medium" — some claims grounded; one or more significant training_only items present
+  "low"    — primarily training_only; limited data confirmation; Python screen is the better primary signal
+
+SELF-CHECK before returning:
+  1. Every grounded_claim has a grounding_source that is NOT "training_only"
+  2. Every training_flag has grounding_source = "training_only" AND a specific how_to_ground
+  3. No business/strategy claim is in grounded_claims with grounding_source = "training_only"
+     (training knowledge about strategy → training_flags, never grounded_claims)
+  4. Stock price moves are training_only — put them in training_flags if relevant
 
 Return ONLY the JSON. No other text before or after it.
 """
@@ -372,9 +410,19 @@ def _build_prompt(ticker, result, full_hist=None, api_raw=None):
     """
     Build the investigation prompt.
     full_hist: list of dicts from data_loader.full_history() — last 5 years passed
-    api_raw:   dict from massive_api.event_scan() — full live signals
+    api_raw:   dict from massive_api.event_scan() — full live signals with headlines
     """
+    def _f(v, d=3):
+        """Safe float formatter — returns 'n/a' for None."""
+        return "n/a" if v is None else f"{v:.{d}f}"
+
     # ---- Python screen evidence block (secondary — starting hypothesis) ----
+    gs        = result.get("growth_stage", "UNKNOWN")
+    cagr_3y   = result.get("growth_cagr_3y")
+    ben_comp  = result.get("beneish_components") or {}
+    b_artifact= result.get("beneish_growth_artifact", False)
+    cagr_str  = f", 3y CAGR {cagr_3y*100:.0f}%" if cagr_3y is not None else ""
+
     screen_block = f"""PYTHON SCREEN EVIDENCE (starting hypothesis — investigate and reach your own verdict):
   Ticker:           {ticker.upper()}
   Sector:           {result.get('sector', '?')}
@@ -388,8 +436,18 @@ def _build_prompt(ticker, result, full_hist=None, api_raw=None):
   Note:             {result.get('note') or 'none'}
   Effective reason: {result.get('effective_reason') or 'none'}
 
+GROWTH STAGE: {gs}{cagr_str}
+  {"⚠ HIGH-GROWTH / PRE-SCALE: Altman Z'', Beneish M, and Ohlson were calibrated on MATURE companies." if gs in ("HIGH-GROWTH", "HIGH-GROWTH-PRE-SCALE") else "Distress models are appropriate for this growth stage."}
+  {"Use growth-stage context when interpreting model flags — do NOT suppress them entirely, but weigh them against runway, capital access, and revenue trajectory." if gs in ("HIGH-GROWTH", "HIGH-GROWTH-PRE-SCALE", "MEDIUM-GROWTH") else ""}
+
+BENEISH M COMPONENTS (calculated from AV financials — grounding_source=calculated):
+  DSRI={_f(ben_comp.get('DSRI'))}  GMI={_f(ben_comp.get('GMI'))}  AQI={_f(ben_comp.get('AQI'))}  SGI={_f(ben_comp.get('SGI'))}
+  DEPI={_f(ben_comp.get('DEPI'))}  SGAI={_f(ben_comp.get('SGAI'))}  LVGI={_f(ben_comp.get('LVGI'))}  TATA={_f(ben_comp.get('TATA'), 4)}
+  {"⚠ beneish_growth_artifact=True: DSRI={} + SGI={} are the drivers; TATA={} ≤ 0 is anti-manipulation. Investigate receivables spike in data, not as fraud signal.".format(_f(ben_comp.get('DSRI')), _f(ben_comp.get('SGI')), _f(ben_comp.get('TATA'),4)) if b_artifact else "Investigate which components drove the M-score."}
+
 Investigate the notable signals above. Confirm or refute each one from the data below.
-You may disagree with the Python screen bucket — explain why in the narrative."""
+You may disagree with the Python screen bucket — explain why in the narrative.
+REMEMBER: search RECENT FOCUSED HEADLINES before writing any business/strategy claim."""
 
     # ---- Full financials block (last 5 years — all fields) ----
     if full_hist:
@@ -401,6 +459,7 @@ You may disagree with the Python screen bucket — explain why in the narrative.
 
     # ---- Live API signals block ----
     if api_raw:
+        headlines = api_raw.get("recent_focused_headlines", [])
         api_block = "LIVE API SIGNALS:\n" + json.dumps({
             "n_news":            api_raw.get("n_news", 0),
             "n_news_massive":    api_raw.get("n_news_massive", 0),
@@ -416,11 +475,21 @@ You may disagree with the Python screen bucket — explain why in the narrative.
             "capital_raises":    api_raw.get("capital_raises", [])[:3],
             "lawfirm_spam_count":api_raw.get("lawfirm_spam", 0),
         }, indent=2)
+        if headlines:
+            # Pass ALL recent focused headlines — LLM MUST search these before any business claim
+            api_block += (
+                f"\n\nRECENT FOCUSED HEADLINES (search these before writing any business/strategy/contract claim):\n"
+                f"[{len(headlines)} headlines — if your claim matches a headline below, "
+                f"cite it as grounding_source=massive_news or av_news with title+date]\n"
+            )
+            for h in headlines:
+                api_block += f"  [{h.get('source','?')}|{h.get('date','')}] {h.get('title','')}\n"
     else:
-        api_block = "LIVE API SIGNALS: not available"
+        api_block = "LIVE API SIGNALS: not available (Python screen only)"
 
     instruction = """
-Investigate. Return ONLY the JSON verdict object. No prose before or after it."""
+Investigate every notable signal. Search headlines for business claims.
+Return ONLY the JSON verdict object. No prose before or after it."""
 
     return f"{screen_block}\n\n{fin_block}\n\n{api_block}\n{instruction}"
 

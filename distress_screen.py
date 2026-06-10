@@ -350,6 +350,76 @@ def recovery(hist, ctx, alt):
     return {"signals": sig, "score": score}
 
 
+# ============================ growth-stage classifier =======================
+def classify_growth_stage(hist):
+    """
+    Classify company by revenue growth trajectory.
+
+    Returns dict with: stage, cagr_3y, cagr_1y, latest_revenue, n_revenue_years
+
+    Stages:
+      HIGH-GROWTH-PRE-SCALE  revenue < $100M; infrastructure/deployment phase
+      HIGH-GROWTH            3y CAGR > 40%
+      MEDIUM-GROWTH          3y CAGR 15–40%
+      STABLE                 3y CAGR 2–15%
+      LOW-GROWTH             3y CAGR 0–2%
+      DECLINING              3y CAGR negative
+      UNKNOWN                insufficient revenue history
+
+    WHY THIS MATTERS — the 7 distress models were calibrated on MATURE companies.
+    Applied to HIGH-GROWTH names they systematically false-flag:
+      • Negative earnings / CFO  → expected during infrastructure deployment
+      • Elevated Beneish DSRI    → receivables growing with the business
+      • Grey-zone Altman Z''     → buyback-levered equity or small absolute assets
+    Growth stage does NOT change the Python bucket — it is context for the LLM
+    investigator so it can correctly interpret the signals.
+    """
+    revs = [(x["fy"], x["revenue"]) for x in hist if x.get("revenue") and x["revenue"] > 0]
+    if not revs:
+        return {"stage": "UNKNOWN", "cagr_3y": None, "cagr_1y": None,
+                "latest_revenue": None, "n_revenue_years": 0}
+
+    revs.sort(key=lambda x: x[0])   # ascending by year (hist is newest-first)
+    latest_rev = revs[-1][1]
+
+    cagr_1y = None
+    if len(revs) >= 2 and revs[-2][1] > 0:
+        cagr_1y = (revs[-1][1] / revs[-2][1]) - 1
+
+    cagr_3y = None
+    if len(revs) >= 3:
+        r_start = revs[-3][1]
+        span = revs[-1][0] - revs[-3][0]
+        if span > 0 and r_start > 0:
+            cagr_3y = (revs[-1][1] / r_start) ** (1.0 / span) - 1
+
+    cagr = cagr_3y if cagr_3y is not None else cagr_1y
+
+    if latest_rev < 100e6:
+        # Sub-$100M revenue: pre-scale; CAGR denominator too small to be reliable
+        stage = "HIGH-GROWTH-PRE-SCALE"
+    elif cagr is not None and cagr > 0.40:
+        stage = "HIGH-GROWTH"
+    elif cagr is not None and cagr > 0.15:
+        stage = "MEDIUM-GROWTH"
+    elif cagr is not None and cagr > 0.02:
+        stage = "STABLE"
+    elif cagr is not None and cagr > -0.05:
+        stage = "LOW-GROWTH"
+    elif cagr is not None:
+        stage = "DECLINING"
+    else:
+        stage = "UNKNOWN"
+
+    return {
+        "stage":           stage,
+        "cagr_3y":         round(cagr_3y, 4) if cagr_3y is not None else None,
+        "cagr_1y":         round(cagr_1y, 4) if cagr_1y is not None else None,
+        "latest_revenue":  latest_rev,
+        "n_revenue_years": len(revs),
+    }
+
+
 # =============================== the screen =================================
 def screen(ticker, ctx, hist, news=None):
     sector = (ctx or {}).get("sector", "Unknown")
@@ -367,6 +437,25 @@ def screen(ticker, ctx, hist, news=None):
     mon = montier_c(hist)
     sol = solvency(hist, ctx)
     rec = recovery(hist, ctx, alt)
+
+    # Growth stage: context for the LLM investigator (does not change the Python bucket)
+    growth = classify_growth_stage(hist)
+    growth_stage = growth["stage"]
+    high_growth = growth_stage in ("HIGH-GROWTH", "HIGH-GROWTH-PRE-SCALE")
+
+    # Beneish growth artifact: HIGH-GROWTH companies legitimately show elevated DSRI
+    # (receivables growing with contracts) and SGI (sales growth index). The tell that it
+    # is NOT manipulation: TATA <= 0 means cash actually EXCEEDS accounting earnings —
+    # the opposite of what a manipulator does. Flag this for the LLM to explain.
+    ben_comp = ben.get("components", {}) or {}
+    _dsri = ben_comp.get("DSRI") or 0
+    _tata = ben_comp.get("TATA") or 0
+    beneish_growth_artifact = (
+        high_growth
+        and bool(ben.get("flag"))
+        and _dsri > 2.0        # DSRI is the dominant driver
+        and _tata <= 0.0       # cash conversion is ANTI-manipulation
+    )
 
     reasons = []   # bankruptcy reasons
     fraud_reasons = []
@@ -639,6 +728,15 @@ def screen(ticker, ctx, hist, news=None):
         "earnings_quality_flag": earnings_quality_flag,
         "fin_sector_caveat": fin_sector, "float_distortion": float_distortion,
         "n_years": len(hist),
+        # ── growth stage (context for LLM investigator; does NOT change bucket) ──
+        "growth_stage":           growth_stage,
+        "growth_cagr_3y":         growth.get("cagr_3y"),
+        "growth_cagr_1y":         growth.get("cagr_1y"),
+        "growth_latest_revenue":  growth.get("latest_revenue"),
+        # ── Beneish component decomposition (groundable math from AV data) ──────
+        "beneish_components":     ben_comp,
+        # True = Beneish M elevated due to DSRI+SGI growth artifacts, NOT TATA signal
+        "beneish_growth_artifact": beneish_growth_artifact,
     }
 
 
@@ -661,6 +759,18 @@ def render(res):
     if res.get("float_distortion"):
         L.append("  [caveat] Float business (holds client funds / captive finance) — gross "
                  "leverage & Altman are distorted; judged on cash flow + real (LT) debt.")
+    gs = res.get("growth_stage", "UNKNOWN")
+    cagr = res.get("growth_cagr_3y")
+    if gs not in ("STABLE", "LOW-GROWTH", "UNKNOWN"):
+        cagr_s = f", CAGR {cagr*100:.0f}%/yr" if cagr is not None else ""
+        L.append(f"  [growth] stage={gs}{cagr_s} — distress models calibrated on mature "
+                 f"companies; interpret Altman/Beneish in this context.")
+    if res.get("beneish_growth_artifact"):
+        bc = res.get("beneish_components", {})
+        L.append(f"  [beneish-artifact] Beneish M elevated by DSRI={bc.get('DSRI',0):.1f} "
+                 f"(receivables/revenue growth) + SGI={bc.get('SGI',0):.1f} (sales growth). "
+                 f"TATA={bc.get('TATA',0):.3f} ≤ 0 = cash exceeds earnings = anti-manipulation. "
+                 f"Likely growth artifact, not fraud signal.")
     a, b, o = res["altman"], res["beneish"], res["ohlson"]
     s, m, ac = res["solvency"], res["montier"], res["accruals"]
     L.append(f"  Altman Z'' {_f(a['z2'])} ({a['zone']})"

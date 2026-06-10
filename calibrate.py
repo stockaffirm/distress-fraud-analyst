@@ -140,6 +140,12 @@ def process_one(ticker, write=True):
         "n_bk_events": len(e["bankruptcy_events"]), "n_fraud_events": len(e["fraud_events"]),
         "effective_reason": eff_reason,
         "note": (note + (" | " + top if top else ""))[:240],
+        # forwarded for LLM investigation layer
+        "growth_stage":            res.get("growth_stage", "UNKNOWN"),
+        "growth_cagr_3y":          res.get("growth_cagr_3y"),
+        "growth_cagr_1y":          res.get("growth_cagr_1y"),
+        "beneish_components":      res.get("beneish_components") or {},
+        "beneish_growth_artifact": bool(res.get("beneish_growth_artifact")),
     }
 
 
