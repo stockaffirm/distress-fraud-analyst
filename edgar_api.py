@@ -60,6 +60,22 @@ _GOING_CONCERN_KWS = [
     "doubt about the company's ability",
     "substantial doubt exists",
 ]
+# Exclude conditional / forward-looking Risk-Factors boilerplate. Nearly every
+# pre-profit company's 10-K §1A contains "if we cannot raise capital, our auditor
+# MAY express substantial doubt ... in FUTURE financial statements" — that is a
+# hypothetical, not a present-period auditor opinion or management conclusion.
+# (Calibration lesson: ASTS FY2025 — KPMG issued an unqualified opinion, yet the
+# flag fired on §1A boilerplate and wrongly promoted CLEAR → AVOID.)
+_GOING_CONCERN_EXCLUDE = [
+    "in future financial statements",
+    "may result in our independent registered public accounting firm",
+    "may express substantial doubt",
+    "could express substantial doubt",
+    "may raise substantial doubt about our ability",
+    "could raise substantial doubt about our ability",
+    "if we were to receive a going concern",
+    "were to express substantial doubt",
+]
 
 # ── Material weakness in internal controls ─────────────────────────────────
 # Positive phrases: an actual material weakness was FOUND / IDENTIFIED.
@@ -354,7 +370,8 @@ def _extract_signals(text):
     Scan stripped 10-K text for distress / fraud signals.
     Returns dict with flags and excerpt lists.
     """
-    gc  = _find_excerpts(text, _GOING_CONCERN_KWS,     max_hits=3)
+    gc  = _find_excerpts(text, _GOING_CONCERN_KWS,     max_hits=3,
+                         exclude_patterns=_GOING_CONCERN_EXCLUDE)
     mw  = _find_excerpts(text, _MATERIAL_WEAKNESS_KWS, max_hits=3,
                          exclude_patterns=_MATERIAL_WEAKNESS_EXCLUDE)
     cov = _find_excerpts(text, _COVENANT_KWS,          max_hits=3)

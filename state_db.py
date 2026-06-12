@@ -26,7 +26,9 @@ import os, sys, sqlite3, csv, json
 HERE = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(HERE, "calibration_state.db")
 LEDGER = os.path.join(HERE, "CALIBRATION_LEDGER.csv")
-LOGIC_VERSION = "v1-2026-06-09"     # bump on any screen/scan logic change -> forces re-validation
+LOGIC_VERSION = "v2-2026-06-12"     # bump on any screen/scan logic change -> forces re-validation
+                                    # v2: EDGAR 10-K signals wired in + going-concern conditional-
+                                    #     language guard (Risk-Factors boilerplate no longer flags gc)
 TTL_DAYS = {"AVOID": 7, "WATCH": 7, "DISTRESSED-RECOVERABLE": 7, "CLEAR": 30}
 DEFAULT_TTL = 30
 

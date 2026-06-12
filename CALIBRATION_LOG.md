@@ -217,3 +217,38 @@ trigger re-validation of EDGAR-flagged names in the durable loop.
   Fistel" to LAWFIRM. Re-ran 99 affected names → AHG→CLEAR, DARE→WATCH, SQFT→recoverable; escalations
   27→23 (genuine "receives notice / reverse split to avoid delisting" cases remain).
   Final after overlay: AVOID 575, WATCH ~775, recoverable ~415, CLEAR ~2444. See CALIBRATED_FINDINGS.md.
+
+## 2026-06-12 — OVERFLAG: EDGAR going-concern flag firing on Risk-Factors boilerplate (ASTS)
+
+**Trigger:** User challenged the ASTS `AVOID(cash_burn)` verdict ("seems like a good emerging
+stock — are we missing something?"). The verdict's load-bearing flag was `edgar_gc=True`, which
+had promoted the screen CLEAR → AVOID via `UNDERFLAG_gc_opinion`.
+
+**Investigation:** Downloaded the ASTS FY2025 10-K (filed 2026-03-02) directly and located every
+"going concern" occurrence. ALL hits were in §1A Risk Factors with conditional, forward-looking
+language: "If we are unable to raise additional capital in the future, it **may result in** our
+independent registered public accounting firm or management expressing substantial doubt … **in
+future financial statements**." The actual auditor's report (KPMG LLP) expressed an **unqualified
+opinion** — no going-concern qualification, ICFR effective. The flag was a false positive: nearly
+every pre-profit company's 10-K carries this exact §1A boilerplate.
+
+**Fix (general):** Added `_GOING_CONCERN_EXCLUDE` to `edgar_api.py` and wired it into
+`_extract_signals()` — excludes conditional phrasings ("in future financial statements",
+"may result in our independent registered public accounting firm", "may/could express substantial
+doubt", "may/could raise substantial doubt about our ability", "if we were to receive a going
+concern", "were to express substantial doubt") from going-concern excerpt matching. Same exclusion
+mechanism already used for material-weakness boilerplate.
+
+**Regression check:**
+- ASTS: `edgar_gc` True → **False**; `calibrate.py --ticker ASTS` now CLEAR / AGREE (was AVOID / UNDERFLAG_gc_opinion). `edgar_cov=1` still fires (Sound Point + UBS facilities — standard disclosure, noted as non-breach).
+- WOLF (genuine going-concern, Ch.11 2025): `edgar_gc` still **True** — true positives preserved.
+- BYND: 0 going-concern mentions in its FY2025 10-K (never flagged); material-weakness flag still fires correctly.
+
+**Lesson:** A keyword hit on "going concern" is only a distress signal when it is a present-tense
+conclusion (auditor opinion or management's footnote), not a hypothetical in Risk Factors. The
+`UNDERFLAG_gc_opinion` promotion path is only as good as the extractor's precision — promotion to
+AVOID on a single text flag needs the conditional-language guard. Note for the LLM layer: the ASTS
+analysis agent itself flagged this uncertainty in `unresolved[]` ("conditional Risk Factors language
+vs confirmed auditor opinion") — the screen should resolve that distinction mechanically, which it
+now does. Cache note: `edgar_cache` has a 7-day TTL; previously-cached gc=True rows for other
+tickers will self-correct as TTL expires, or bump LOGIC_VERSION to force re-validation.

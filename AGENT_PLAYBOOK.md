@@ -180,14 +180,24 @@ star) or defer to the `fair-value-analyst` skill. It's not part of the core dist
 
 ## 3. "Analyze everything" (the whole universe)
 
+**LIVE DATA RULE — hard constraint:** Never read from pre-existing `DISTRESS_SCREEN.csv`,
+`CALIBRATION_LEDGER.csv`, or any other previously-built output file to answer a screen request.
+Those files are stale the moment they are written. When asked to screen tickers or the full
+universe, ALWAYS re-run the scripts below to produce fresh output for today. If you cannot
+re-run due to a tool/timeout constraint, say so explicitly — do NOT silently serve yesterday's
+data as if it were today's.
+
 ```bash
 cd $DIR
-python3 distress_batch.py     # → DISTRESS_SCREEN.csv (every name bucketed) + DISTRESS_REPORT.md
-python3 batch_runner.py       # → FAIR_VALUE_ALL.csv (every name valued)   [if valuation needed]
+python3 distress_batch.py     # → fresh DISTRESS_SCREEN.csv (every name bucketed) + DISTRESS_REPORT.md
+python3 batch_runner.py       # → fresh FAIR_VALUE_ALL.csv (every name valued)   [if valuation needed]
 ```
-Then answer from the CSV/report: the AVOID lists (bankruptcy split insolvency vs cash-burn; fraud),
-the DISTRESSED-RECOVERABLE list, the forensic earnings-quality watchlist, news-corroborated names.
+
+After the fresh run completes, answer from the newly-written CSV/report: the AVOID lists
+(bankruptcy split insolvency vs cash-burn; fraud), the DISTRESSED-RECOVERABLE list, the forensic
+earnings-quality watchlist, news-corroborated names.
 Rank by what the user asked (size, severity, sector). Always carry the §10 limitations.
+Always state the data vintage (the timestamp of this run) in the output.
 
 For a **portfolio** (a set of held tickers), run each through §2 and return a ranked
 keep/trim/avoid table with the reasons.
